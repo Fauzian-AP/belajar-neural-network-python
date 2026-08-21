@@ -1,0 +1,29 @@
+# Tempat menyimpan data untuk melatih Model
+
+# Training --> Model belajar dari data ini
+training_data = [
+  ([1, 2, 3], [10, 20]),
+  ([2, 4, 6], [20, 40]),
+  ([3, 6, 9], [30, 60]),
+  ([4, 8, 12], [40, 80]),
+  ([5, 10, 15], [50, 100]),
+  ([6, 12, 18], [60, 120]),
+  ([7, 14, 21], [70, 140]),
+  ([8, 16, 24], [80, 160]),
+  ([9, 18, 27], [90, 180]),
+  ([10, 20, 30], [100, 200]),
+]
+
+# Validation --> Mengecek perkembangan model selama eksperimen
+validation_data = [
+  ([11, 22, 33], [110, 220]),
+  ([12, 24, 36], [120, 240]),
+  ([13, 26, 39], [130, 260]),
+]
+
+# Testing --> Evaluasi final pada data yang tidak digunakan untuk mengambil keputusan
+test_data = [
+  ([14, 28, 42], [140, 280]),
+  ([15, 30, 45], [150, 300]),
+  ([16, 32, 48], [160, 320]),
+]
