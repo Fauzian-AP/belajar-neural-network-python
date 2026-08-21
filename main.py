@@ -88,7 +88,8 @@ print("=== Training ===")
 trainer.fit(
   normalized_training_data,
   normalized_validation_data,
-  epochs=1000
+  epochs=1000,
+  batch_size=3
 )
 
 # Final Evaluation

@@ -1,7 +1,7 @@
 # Bagian untuk Activation Function yaitu:
-# Rumus MTK untuk Neural Network yg menentukan apakah suatu neuron hrs aktif & menghasilkan keluaran.
+# Rumus MTK pd Neural Network yg menentukan apakah suatu Neuron hrs aktif & menghasilkan keluaran.
 
-# Memggunakan ReLU (Rectified Linear Unit)
+# Menggunakan ReLU (Rectified Linear Unit)
 # Rumus: f(x) = max(0, x)
 
 # Untuk Forward

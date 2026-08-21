@@ -1,8 +1,9 @@
-# Bagian Utama untuk membuat Model
+# Bagian Utama untuk membuat Model Machine Learning
 
 from layer import Layer   # Import Neuron
 
 class Model:
+  # CONSTRUCTOR
   def __init__(self, learning_rate):
     self.layers = [
       # Hidden Layer 1
@@ -30,6 +31,7 @@ class Model:
       ),
     ]
 
+  # FORWARD — Proses Prediksi tiap Layer (Maju)
   def forward(self, inputs):
     output = inputs
 
@@ -39,6 +41,7 @@ class Model:
 
     return output
 
+  # BACKWARD — Proses Cek kesalahan tiap Layer (Mundur)
   def backward(self, inputs, gradient_output):
     # Simpan Output setiap Layer
     layer_outputs = []
@@ -66,6 +69,17 @@ class Model:
 
     return gradient
 
+  # RESET GRADIENT — Mengosongkan Gradient Weight & Bias tiap Layer
+  def reset_gradient(self):
+    for layer in self.layers:
+      layer.reset_gradient()
+
+  # AVERAGE GRADIENT — Menghitung rata² 
+  def average_gradient(self, batch_size):
+    for layer in self.layers:
+      layer.average_gradient(batch_size)
+
+  # STEP — Proses Update Weight & Bias tiap Layer
   def step(self):
     for layer in self.layers:
       layer.step()

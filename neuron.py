@@ -1,4 +1,4 @@
-# Bagian paling dasar yaitu sebuah Neuron / Saraf Tiruan yg berisi
+# Bagian paling dasar dari Neural Network yaitu sebuah Neuron / Saraf yg berisi
 # Rumus: y = x₁w₁ + x₂w₂ + x₃w₃ + bias
 
 import random
@@ -36,10 +36,10 @@ class Neuron:
     # Gradient Bias
     self.gradient_bias = 0
 
-    # Menyimpan Pre-Activation
+    # Pre-Activation
     self.last_pre_activation = 0
 
-  # FORWARD — Proses Prediksi Neuron
+  # FORWARD — Proses Prediksi
   def forward(self, inputs):
     pre_activation = self.bias
 
@@ -81,7 +81,7 @@ class Neuron:
 
     return gradient_input
 
-  # RESET GRADIENT — Proses yg dijalankan sebelum proses 1x Batch
+  # RESET GRADIENT — Mengosongkan Gradient Weight & Bias
   def reset_gradient(self):
     # Reset tiap Gradient Weight
     for i in range(len(self.gradient_weights)):
@@ -89,6 +89,15 @@ class Neuron:
 
     # Reset Gradient Bias
     self.gradient_bias = 0
+
+  # AVERAGE GRADIENT — Menghitung rata² Gradient Weight & Bias
+  def average_gradient(self, batch_size):
+    # Rata² tiap Gradient Weight
+    for i in range(len(self.gradient_weights)):
+      self.gradient_weights[i] /= batch_size
+
+    # Rata² Gradient Bias
+    self.gradient_bias /= batch_size
 
   # STEP — Update Weight & Bias
   def step(self):
