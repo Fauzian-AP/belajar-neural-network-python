@@ -8,10 +8,10 @@ class Layer:
     input_size,
     neuron_count,
     learning_rate,
-    activation=True
+    is_activation=True
   ):
     self.neurons = [
-      Neuron(input_size, learning_rate, activation)
+      Neuron(input_size, learning_rate, is_activation)
       for _ in range(neuron_count)
     ]
 

@@ -1,6 +1,6 @@
 # Bagian Utama untuk membuat Model Machine Learning
 
-from layer import Layer   # Import Neuron
+from layer import Layer   # Import Layer
 
 class Model:
   # CONSTRUCTOR
@@ -11,7 +11,7 @@ class Model:
         input_size=3,
         neuron_count=4,
         learning_rate = learning_rate,
-        activation=True
+        is_activation=True
       ),
     
       # Hidden Layer 2
@@ -19,7 +19,7 @@ class Model:
         input_size=4,
         neuron_count=4,
         learning_rate = learning_rate,
-        activation=True
+        is_activation=True
       ),
     
       # Output Layer
@@ -27,7 +27,7 @@ class Model:
         input_size=4,
         neuron_count=2,
         learning_rate = learning_rate,
-        activation=False
+        is_activation=False
       ),
     ]
 

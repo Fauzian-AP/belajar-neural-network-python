@@ -1,4 +1,6 @@
 # Bagian untuk melatih Model
+
+import random
 from loss import mse, mse_gradient   # Import Loss
 
 class Trainer:
@@ -8,11 +10,18 @@ class Trainer:
 
   # CREATE BATCH — Membuat kumpulan data yg diproses secara bersamaan dlm 1x proses NN.
   def create_batches(self, dataset, batch_size):
+    # Buat Duplikat dari Dataset
+    shuffle_dataset = dataset.copy()
+
+    # Shuffle data untuk mengurangi ketergantungan Model pd pola urutan
+    random.shuffle(shuffle_dataset)
+
     batches = []
 
-    for i in range(0, len(dataset), batch_size):
+    # Proses Mini-Batch
+    for i in range(0, len(shuffle_dataset), batch_size):
       # Slicing Index
-      batch = dataset[i : (i + batch_size)]
+      batch = shuffle_dataset[i : (i + batch_size)]
 
       batches.append(batch)
 
@@ -88,7 +97,7 @@ class Trainer:
       validation_loss = self.evaluate(validation_data)
 
       if epoch % 100 == 0:
-        print(f"Epoch {epoch - 1}")
+        print(f"Epoch {epoch}")
         print(f"Training Loss: {training_loss}")
         print(f"Validation Loss: {validation_loss}")
         print()

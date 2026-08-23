@@ -2,75 +2,72 @@
 # Rumus: y = x₁w₁ + x₂w₂ + x₃w₃ + bias
 
 import random
+import math
 from activation import relu, relu_derivative
 
 class Neuron:
-  # CONSTRUCTOR
+  # CONSTRUCTOR — Initialization
   def __init__(
     self,
     input_size,
     learning_rate,
-    activation=True
+    is_activation=True
   ):
-    # Learning Rate (Penting)
+    # Menentukan seberapa besar perubahan Weight & Bias tiap update
     self.learning_rate = learning_rate
 
-    # Cek Activation
-    self.activation = activation
+    # Cek apakah Activation digunakan atau tdk
+    self.is_activation = is_activation
 
-    # Tiap 'input_size' memiliki Weight sendiri
+    # Menentukan seberapa besar pengaruh tiap Input terhadap Output
     self.weights = [
-      random.uniform(-1, 1)
-      for _ in range(input_size)
+      # He — Menentukan skala Weight awal berdasarkan jumlah inputan
+      random.gauss(0, math.sqrt(2 / input_size))
+
+      # Tiap input punya Weight sendiri
+      for _ in range(input_size) 
     ]
+    
+    # Menentukan pergeseran nilai pd Pre-Activation
+    self.bias = 0
 
-    # Bias
-    self.bias = random.uniform(-1, 1)
+    # Menunjukkan seberapa sensitif Loss terhadap Weight
+    self.gradient_weights = [0] * input_size   # Tiap input ada
 
-    # Tiap 'input_size' memiliki Grandient Weight sendiri
-    self.gradient_weights = [
-      0
-      for _ in range(input_size)
-    ]
-
-    # Gradient Bias
+    # Menunjukkan seberapa sensitif Loss terhadap Bias
     self.gradient_bias = 0
 
-    # Pre-Activation
+    # Nilai terakhir sebelum Activation
     self.last_pre_activation = 0
 
   # FORWARD — Proses Prediksi
   def forward(self, inputs):
     pre_activation = self.bias
 
-    # Proses Weighted Sum
+    # Weighted Sum
     for input, weight in zip(inputs, self.weights):
       pre_activation += input * weight
 
     self.last_pre_activation = pre_activation
 
-    # Proses Aktivasi (ReLU)
-    if self.activation:
-      return relu(pre_activation)
-
-    return pre_activation
-
+    # Aktivasi (ReLU)
+    return (
+      relu(pre_activation) if (self.is_activation) else pre_activation
+    )
+      
   # BACKWARD — Proses Cek Kesalahan
   def backward(self, inputs, gradient_output):
     # Gradient Pre-Activation (ReLU)
-    if self.activation:
-      gradient_pre_activation = (
-        gradient_output * relu_derivative(self.last_pre_activation)
-      )
-  
+    if self.is_activation:
+      gradient_pre_activation = gradient_output * relu_derivative(self.last_pre_activation)
     else:
       gradient_pre_activation = gradient_output
 
-    # Sum Gradient Weight
+    # Akumulasi Gradient Weight
     for i, input in enumerate(inputs):
       self.gradient_weights[i] += gradient_pre_activation * input
 
-    # Sum Gradient Bias
+    # Akumulasi Gradient Bias
     self.gradient_bias += gradient_pre_activation
 
     # Gradient Input (dikirim ke Layer sebelumnya)
@@ -83,31 +80,27 @@ class Neuron:
 
   # RESET GRADIENT — Mengosongkan Gradient Weight & Bias
   def reset_gradient(self):
-    # Reset tiap Gradient Weight
+    # Gradient Weight
     for i in range(len(self.gradient_weights)):
       self.gradient_weights[i] = 0
 
-    # Reset Gradient Bias
+    # Gradient Bias
     self.gradient_bias = 0
 
   # AVERAGE GRADIENT — Menghitung rata² Gradient Weight & Bias
   def average_gradient(self, batch_size):
-    # Rata² tiap Gradient Weight
+    # Gradient Weight
     for i in range(len(self.gradient_weights)):
       self.gradient_weights[i] /= batch_size
 
-    # Rata² Gradient Bias
+    # Gradient Bias
     self.gradient_bias /= batch_size
 
   # STEP — Update Weight & Bias
   def step(self):
-    # Sesuaikan Weight
+    # Weight
     for i in range(len(self.weights)):
-      self.weights[i] -= (
-        self.learning_rate * self.gradient_weights[i]
-      )
+      self.weights[i] -= self.learning_rate * self.gradient_weights[i]
 
-    # Sesuaikan Bias
-    self.bias -= (
-      self.learning_rate * self.gradient_bias
-    )
+    # Bias
+    self.bias -= self.learning_rate * self.gradient_bias

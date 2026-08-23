@@ -1,21 +1,58 @@
-from neuron import Neuron
+from model import Model
+from trainer import Trainer
 
-neuron = Neuron(
-  input_size=2,
-  learning_rate=0.01,
-  activation=False
+# =========================
+# MODEL
+# =========================
+
+model = Model(
+  learning_rate=0.001
 )
 
-neuron.gradient_weights = [6, 12]
-neuron.gradient_bias = 9
+trainer = Trainer(model)
 
-print("=== Sebelum Average ===")
-print("Gradient Weight :", neuron.gradient_weights)
-print("Gradient Bias   :", neuron.gradient_bias)
+# =========================
+# DATASET KECIL
+# =========================
 
-neuron.average_gradient(3)
+training_data = [
+  ([0.2, 0.4, 0.6], [0.3, 0.7]),
+  ([0.4, 0.6, 0.8], [0.5, 0.9]),
+]
 
-print()
-print("=== Setelah Average ===")
-print("Gradient Weight :", neuron.gradient_weights)
-print("Gradient Bias   :", neuron.gradient_bias)
+# Validation sengaja dibuat sama
+# dengan training data.
+#
+# Tujuannya bukan menguji generalisasi,
+# tetapi melihat apakah model mampu
+# menghafal data.
+
+validation_data = training_data.copy()
+
+# =========================
+# TRAINING
+# =========================
+
+print("=== OVERFITTING TEST ===")
+
+trainer.fit(
+  training_data,
+  validation_data,
+  epochs=5000,
+  batch_size=2
+)
+
+# =========================
+# FINAL PREDICTION
+# =========================
+
+print("=== FINAL ===")
+
+for inputs, targets in training_data:
+
+  prediction = model.forward(inputs)
+
+  print()
+  print("Input      :", inputs)
+  print("Prediction :", prediction)
+  print("Target     :", targets)

@@ -1,3 +1,5 @@
+import random
+
 from model import Model
 from trainer import Trainer
 
@@ -12,6 +14,9 @@ from normalizer import (
   normalize_list,
   denormalize_list
 )
+
+# Mengontrol Reproducibility Random Number
+random.seed(42)
 
 # Normalizer
 

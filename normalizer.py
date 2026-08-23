@@ -36,5 +36,3 @@ def denormalize_list(values, normalizer):
     normalizer.denormalize(value)
     for value in values
   ]
-
-  
