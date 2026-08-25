@@ -1,7 +1,12 @@
-# Bagian untuk menghitung Loss, yaitu:
-# Nilai numeric yg digunakan untukbmengukur seberapa besar tingkat kesalahan dlm prediksi model
+# Bagian Pengelolaan Loss, yaitu:
+# Angka yg digunakan untuk mengukur seberapa salah Prediksi Model
 
-# Gunakan MSE (Mean Squared Error)
+import math
+
+# MSE — Mean Squared Error
+# Menghitung seberapa besar Error
+
+# MSE = (1/Total) × Σ(Target - Prediksi)²
 
 def mse(targets, predictions):
   total = 0
@@ -11,13 +16,36 @@ def mse(targets, predictions):
 
   return total / len(targets)
 
+# MSE Gradient
+# Menetukan Update Weight & Bias
+
+# Gradient = (2/Total) × (Prediksi - Target)
+
 def mse_gradient(targets, predictions):
   gradients = []
 
   for target, prediction in zip(targets, predictions):
-    gradients.append(
-      # Rumus Gradient MSE
-      2 * (prediction - target)
-    )
+    gradients.append(2 * (prediction - target))
 
   return gradients
+
+# MAE — Mean Absolute Error
+# Menghitung rata² jarak absolut error
+
+# MAE = (1/Total) × Σ|Target - Prediksi|
+
+def mae(targets, predictions):
+  total_error = 0
+
+  for target, prediction in zip(targets, predictions):
+    total_error += abs(target - prediction)
+
+  return total_error / len(targets)
+
+# RMSE (Root Mean Squared Error)
+# Hasil MSE di-akar sehingga satuannya kembali sama dgn Target
+
+# RMSE = √MSE
+
+def rmse(targets, predictions):
+  return math.sqrt(mse(targets, predictions))

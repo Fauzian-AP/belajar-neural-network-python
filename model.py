@@ -11,7 +11,7 @@ class Model:
         input_size=3,
         neuron_count=4,
         learning_rate = learning_rate,
-        is_activation=True
+        is_activation=False
       ),
     
       # Hidden Layer 2
@@ -19,7 +19,7 @@ class Model:
         input_size=4,
         neuron_count=4,
         learning_rate = learning_rate,
-        is_activation=True
+        is_activation=False
       ),
     
       # Output Layer

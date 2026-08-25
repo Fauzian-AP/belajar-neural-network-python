@@ -21,9 +21,17 @@ validation_data = [
   ([13, 26, 39], [130, 260]),
 ]
 
-# Testing --> Evaluasi final pada data yang tidak digunakan untuk mengambil keputusan
+# Testing --> Evaluasi final pd data yg tdk digunakan untuk mengambil keputusan
 test_data = [
   ([14, 28, 42], [140, 280]),
   ([15, 30, 45], [150, 300]),
   ([16, 32, 48], [160, 320]),
+]
+
+# GENERALIZATION --> Menguji kemampuan Model pd input baru yg masih mengikuti pola data
+generalization_data = [
+  ([5, 10, 15], [50, 100]),
+  ([5.5, 11, 16.5], [55, 110]),
+  ([7.5, 15, 22.5], [75, 150]),
+  ([9.5, 19, 28.5], [95, 190]),
 ]
