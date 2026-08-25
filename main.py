@@ -2,6 +2,7 @@ import random
 
 from model import Model
 from trainer import Trainer
+from plot import plot_history
 
 from dataset import (
   training_data,
@@ -71,7 +72,7 @@ trainer = Trainer(model)
 
 # TRAINING
 
-print("=== Training ===")
+print("=== TRAINING ===")
 
 result = trainer.fit(
   normalized_training_data,
@@ -81,7 +82,13 @@ result = trainer.fit(
   patience=10
 )
 
-print("=== TRAINING RESULT ===")
+history = result["history"]
+
+print("=== HISTORY ===")
+print("Jumlah Epoch :", len(history["epoch"]))
+print()
+
+print("=== RESULT ===")
 print(f"Best Epoch          : {result['best_epoch']}")
 print(f"Best Validation MSE : {result['best_validation_mse']}")
 print(f"Stopped Epoch       : {result['last_epoch']}")
@@ -96,3 +103,7 @@ testing_metrics = trainer.evaluate(normalized_test_data)
 print(f"Testing MSE  : {testing_metrics['mse']}")
 print(f"Testing MAE  : {testing_metrics['mae']}")
 print(f"Testing RMSE : {testing_metrics['rmse']}")
+
+# TAMPILKAN GRAFIK
+
+plot_history(**history)  # Gunakan Syntax Unpacking Dictionary

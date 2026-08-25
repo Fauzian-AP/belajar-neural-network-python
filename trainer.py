@@ -16,15 +16,15 @@ class Trainer:
     # Buat Duplikat dari Dataset
     shuffle_dataset = dataset.copy()
 
-    # Shuffle data untuk mengurangi ketergantungan Model pd pola urutan
+    # Shuffle data agar mengurangi ketergantungan Model pd pola urutan
     random.shuffle(shuffle_dataset)
 
     batches = []
 
-    # Proses Mini-Batch
+    # Proses pembagian data menjadi Batch² kecil
     for i in range(0, len(shuffle_dataset), batch_size):
       # Slicing Index
-      batch = shuffle_dataset[i : (i + batch_size)]
+      batch = shuffle_dataset[i:(i + batch_size)]
 
       batches.append(batch)
 
@@ -32,21 +32,15 @@ class Trainer:
 
   # TRAIN — Melatih Model
   def train(self, dataset, batch_size):
-    total_loss = 0
-
     # Buat Batch
     batches = self.create_batches(dataset, batch_size)
 
+    # Proses Mini-Batch
     for batch in batches:
       for inputs, targets in batch:
         # Forward
         predictions = self.model.forward(inputs)
-    
-        # Loss
-        loss = mse(targets, predictions)
-    
-        total_loss += loss
-    
+
         # Gradient Loss
         gradient_output = mse_gradient(targets, predictions)
     
@@ -62,12 +56,12 @@ class Trainer:
       # Reset Gradient
       self.model.reset_gradient()
 
-    # Rata-rata Loss
-    average_loss = total_loss / len(dataset)
+    # Hitung Metrics setelah Batch selesai
+    training_metrics = self.evaluate(dataset)
+    
+    return training_metrics
 
-    return average_loss
-
-  # EVALUATE — Evaluasi / Validasi Model
+  # EVALUATE — Validasi Model
   def evaluate(self, dataset):
     total_mse = total_mae = total_rmse = 0
   
@@ -78,19 +72,16 @@ class Trainer:
       # Metrics
       metrics = calculate_metrics(targets, predictions)
 
+      # Kumpulkan Metrics
       total_mse += metrics["mse"]
       total_mae += metrics["mae"]
       total_rmse += metrics["rmse"]
 
-    # Average Metrics
-    average_mse = total_mse / len(dataset)
-    average_mae = total_mae / len(dataset)
-    average_rmse = total_rmse / len(dataset)
-    
+    # Kembalikan Metrics yg telah di Average
     return {
-      "mse": average_mse,
-      "mae": average_mae,
-      "rmse": average_rmse,
+      "mse": total_mse / len(dataset),   # Loss Core
+      "mae": total_mae / len(dataset),
+      "rmse": total_rmse / len(dataset),
     }
 
   # SAVE MODEL — State untuk menyimpan Weight & Bias Model
@@ -110,30 +101,44 @@ class Trainer:
     batch_size,
     patience=10
   ):
+    # Histroy Training
+    history = {
+      "epoch": [],
+      "training_data": [],
+      "validation_data": [],
+    }
+
+    # Early Stopping & Restore Best Model Initialization
     best_validation_mse = float("inf")   # Float positif tak terhingga
     best_model = None
     best_epoch = 0
     patience_counter = 0
+    last_epoch = epochs
 
     for epoch in range(epochs):
       # Training
       training_loss = self.train(training_data, batch_size)
 
       # Validation
-      validation_metrics = self.evaluate(validation_data)
+      validation_loss = self.evaluate(validation_data)
 
-      # Ambil hasil validation yg MSE saja
-      validation_mse = validation_metrics["mse"]
+      # Simpan Histroy
+      history["epoch"].append(epoch)
+      history["training_data"].append(training_loss)
+      history["validation_data"].append(validation_loss)
+
+      # Ambil Validation MSE
+      validation_mse = validation_loss["mse"]
 
       # Jika Model Membaik
       if (validation_mse < best_validation_mse):
-        # Simpan Validation MSE
+        # Simpan Validation MSE yg terbaik
         best_validation_mse = validation_mse
 
         # Simpan Data Model saat ini sbg yg terbaik
         best_model = self.save_model()
 
-        # Simpan posisi Epoch saat ini sbg yg terbaik
+        # Simpan Epoch saat ini sbg yg terbaik
         best_epoch = epoch
 
         # Reset patience
@@ -144,11 +149,13 @@ class Trainer:
 
       # Log Epochs
       if epoch % 100 == 0:
-        print(f"Epoch {epoch}")
-        print(f"Training Loss   : {training_loss}")
-        print(f"Validation MSE  : {validation_metrics['mse']}")
-        print(f"Validation MAE  : {validation_metrics['mae']}")
-        print(f"Validation RMSE : {validation_metrics['rmse']}")
+        print(f"=== Epoch {epoch} ===")
+        print(f"Training MSE    : {training_loss["mse"]}")
+        print(f"Training MAE    : {training_loss["mae"]}")
+        print(f"Training RMSE   : {training_loss["rmse"]}")
+        print(f"Validation MSE  : {validation_loss['mse']}")
+        print(f"Validation MAE  : {validation_loss['mae']}")
+        print(f"Validation RMSE : {validation_loss['rmse']}")
         print(f"Patience        : {patience_counter}/{patience}")
         print()
 
@@ -157,6 +164,13 @@ class Trainer:
         # Simpan posisi Epoch paling terakhir
         last_epoch = epoch
 
+        print("=== EARLY STOPPING ===")
+        print(f"Epoch               : {last_epoch}")
+        print(f"Best Epoch          : {best_epoch}")
+        print(f"Best Validation MSE : {best_validation_mse}")
+        print()
+
+        # Hentikan Epoch
         break
 
     # Restore Best Model
@@ -164,6 +178,7 @@ class Trainer:
       self.restore_model(best_model)
       
     return {
+      "history": history,
       "best_epoch": best_epoch,
       "best_validation_mse": best_validation_mse,
       "last_epoch": last_epoch,
