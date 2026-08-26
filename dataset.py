@@ -1,7 +1,24 @@
-# Tempat menyimpan data untuk melatih Model
+# Bagian Pengelolaan Data² yg akan digunakan dlm melatih Model
 
-# Training --> Model belajar dari data ini
-training_data = [
+
+# ====================
+# === TYPE CHECKER ===
+# ====================
+
+Dataset = list[
+  tuple[
+    list[float],
+    list[float],
+  ]
+]
+
+
+# ============
+# === DATA ===
+# ============
+
+# TRAINING --> Model belajar dari data ini
+training_data: Dataset = [
   ([1, 2, 3], [10, 20]),
   ([2, 4, 6], [20, 40]),
   ([3, 6, 9], [30, 60]),
@@ -14,22 +31,22 @@ training_data = [
   ([10, 20, 30], [100, 200]),
 ]
 
-# Validation --> Mengecek perkembangan model selama eksperimen
-validation_data = [
+# VALIDATION --> Mengecek perkembangan model selama eksperimen
+validation_data: Dataset = [
   ([11, 22, 33], [110, 220]),
   ([12, 24, 36], [120, 240]),
   ([13, 26, 39], [130, 260]),
 ]
 
-# Testing --> Evaluasi final pd data yg tdk digunakan untuk mengambil keputusan
-test_data = [
+# TESTING --> Evaluasi final pd data yg tdk digunakan untuk mengambil keputusan
+test_data: Dataset = [
   ([14, 28, 42], [140, 280]),
   ([15, 30, 45], [150, 300]),
   ([16, 32, 48], [160, 320]),
 ]
 
 # GENERALIZATION --> Menguji kemampuan Model pd input baru yg masih mengikuti pola data
-generalization_data = [
+generalization_data: Dataset = [
   ([5, 10, 15], [50, 100]),
   ([5.5, 11, 16.5], [55, 110]),
   ([7.5, 15, 22.5], [75, 150]),

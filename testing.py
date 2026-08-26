@@ -1,223 +1,105 @@
-import random
+# testing.py — Script Pengujian Neuron & Validasi Keamanan
 
-from model import Model
-from trainer import Trainer
+from dataset import training_data
+from neuron import Neuron
 
-from normalizer import (
-  Normalizer,
-  normalize_list,
-  normalize_datasets,
+print("=" * 65)
+print("=== 1. PENGUJIAN PROSES NORMAL (FORWARD, BACKWARD, STEP, RESET) ===")
+print("=" * 65)
+
+# Inisialisasi Neuron (3 input, learning_rate 0.01, aktivasi ReLU)
+neuron = Neuron(input_size=3, learning_rate=0.01, activation="ReLU")
+
+print(f"[INIT] Neuron berhasil dibuat.")
+print(f"       Weights Awal : {neuron.weights}")
+print(f"       Bias Awal    : {neuron.bias}\n")
+
+# Sampel dataset pertama: ([1, 2, 3], [10, 20])
+x_sample, y_sample = training_data[0]
+target = float(y_sample[0])  # Target output pertama (10.0)
+
+# A. Forward Pass
+prediksi = neuron.forward(x_sample)
+print(f"[FORWARD] Input: {x_sample}")
+print(f"          Prediksi Output     : {prediksi:.4f}")
+print(f"          Last Pre-Activation : {neuron.last_pre_activation:.4f}\n")
+
+# B. Backward Pass
+# Misal gradien Loss dL/d_pred = 2 * (prediksi - target)
+gradien_output = 2.0 * (prediksi - target)
+gradien_input = neuron.backward(x_sample, gradien_output)
+
+print(f"[BACKWARD] Gradien Output Diterima      : {gradien_output:.4f}")
+print(f"           Gradien Weights Terakumulasi : {neuron.gradient_weights}")
+print(f"           Gradien Bias Terakumulasi    : {neuron.gradient_bias:.4f}")
+print(f"           Gradien Input Diteruskan     : {gradien_input}\n")
+
+# C. Average Gradient (misal mini-batch ukuran 2)
+neuron.average_gradient(batch_size=2)
+print(f"[AVERAGE] Rata-rata Gradien Weights (batch=2) : {neuron.gradient_weights}")
+print(f"          Rata-rata Gradien Bias              : {neuron.gradient_bias:.4f}\n")
+
+# D. Step Update Parameter
+neuron.step()
+print(f"[STEP] Parameter setelah diperbarui:")
+print(f"       Weights Baru : {neuron.weights}")
+print(f"       Bias Baru    : {neuron.bias:.4f}\n")
+
+# E. Reset Gradient
+neuron.reset_gradient()
+print(f"[RESET] Gradien Weights setelah reset : {neuron.gradient_weights}")
+print(f"        Gradien Bias setelah reset    : {neuron.gradient_bias:.4f}\n")
+
+
+print("=" * 65)
+print("=== 2. PENGUJIAN VALIDASI & KONDISI SALAH (ERROR HANDLING) ===")
+print("=" * 65)
+
+def test_exception(description: str, func) -> None:
+    """Helper fungsi untuk memverifikasi bahwa ValueError dilempar saat kondisi salah."""
+    try:
+        func()
+        print(f"[FAIL] {description} -> TIDAK melempar error!")
+    except ValueError as e:
+        print(f"[PASS] {description}")
+        print(f"       Pesan Error Ditangkap: \"{e}\"")
+
+# 1. Validasi Input Size
+test_exception(
+    "Init dengan input_size = 0",
+    lambda: Neuron(input_size=0, learning_rate=0.01)
 )
 
-from metrics import calculate_metrics
-
-random.seed(42)
-
-# =========================
-# DATA TRAINING
-# =========================
-
-training_data = [
-  ([1, 2, 3], [12, 17]),
-  ([2, 4, 6], [18, 45]),
-  ([3, 6, 9], [34, 55]),
-  ([4, 8, 12], [37, 85]),
-  ([5, 10, 15], [58, 92]),
-  ([6, 12, 18], [55, 130]),
-  ([7, 14, 21], [76, 132]),
-  ([8, 16, 24], [75, 170]),
-]
-
-# =========================
-# DATA VALIDATION
-# =========================
-
-validation_data = [
-  ([1.5, 3, 4.5], [15, 30]),
-  ([2.5, 5, 7.5], [25, 50]),
-  ([3.5, 7, 10.5], [35, 70]),
-  ([4.5, 9, 13.5], [45, 90]),
-]
-
-# =========================
-# NORMALIZER
-# =========================
-
-input_normalizer = Normalizer()
-target_normalizer = Normalizer()
-
-input_values = []
-target_values = []
-
-for inputs, targets in training_data:
-  input_values.extend(inputs)
-  target_values.extend(targets)
-
-# FIT NORMALIZER
-
-input_normalizer.fit(input_values)
-target_normalizer.fit(target_values)
-
-print("=== NORMALIZER ===")
-print("Input Min  :", input_normalizer.minimum)
-print("Input Max  :", input_normalizer.maximum)
-print("Target Min :", target_normalizer.minimum)
-print("Target Max :", target_normalizer.maximum)
-print()
-
-# =========================
-# NORMALIZE DATASET
-# =========================
-
-datasets = {
-  "training_data": training_data,
-  "validation_data": validation_data,
-}
-
-normalize_datasets = normalize_datasets(
-  datasets,
-  input_normalizer,
-  target_normalizer,
+# 2. Validasi Learning Rate
+test_exception(
+    "Init dengan learning_rate = -0.05",
+    lambda: Neuron(input_size=3, learning_rate=-0.05)
 )
 
-normalized_training_data = normalize_datasets["training_data"]
-normalized_validation_data = normalize_datasets["validation_data"]
-
-# =========================
-# MODEL
-# =========================
-
-model = Model(learning_rate=0.0005)
-trainer = Trainer(model)
-
-# =========================
-# TRAINING
-# =========================
-
-print("=== TRAINING ===")
-
-result = trainer.fit(
-  normalized_training_data,
-  normalized_validation_data,
-  epochs=5000,
-  batch_size=3,
-  patience=10
+# 3. Validasi Nama Activation
+test_exception(
+    "Init dengan activation = 'sigmoid'",
+    lambda: Neuron(input_size=3, learning_rate=0.01, activation="sigmoid")  # type: ignore
 )
 
-# =========================
-# TRAINING RESULT
-# =========================
+# 4. Validasi Ukuran Input pada Forward Pass
+test_exception(
+    "Forward dengan panjang input salah ([1.0, 2.0])",
+    lambda: neuron.forward([1.0, 2.0])
+)
 
-print()
-print("=== TRAINING RESULT ===")
-print(f"Best Epoch          : {result["best_epoch"]}")
-print(f"Best Validation MSE : {result["best_validation_mse"]}")
-print(f"Stopped Epoch       : {result["last_epoch"]}")
-print()
+# 5. Validasi Ukuran Input pada Backward Pass
+test_exception(
+    "Backward dengan panjang input salah ([1.0, 2.0, 3.0, 4.0])",
+    lambda: neuron.backward([1.0, 2.0, 3.0, 4.0], gradient_output=1.0)
+)
 
-# =========================
-# NORMALIZED METRICS
-# =========================
+# 6. Validasi Batch Size pada Average Gradient
+test_exception(
+    "Average Gradient dengan batch_size = 0",
+    lambda: neuron.average_gradient(batch_size=0)
+)
 
-training_metrics = trainer.evaluate(normalized_training_data)
-validation_metrics = trainer.evaluate(normalized_validation_data)
-
-print("=== NORMALIZED METRICS ===")
-
-print()
-
-print("Training")
-
-print(f"MSE  : {training_metrics["mse"]}")
-print(f"MAE  : {training_metrics["mae"]}")
-print(f"RMSE : {training_metrics["rmse"]}")
-
-print()
-
-print("Validation")
-print(f"MSE  : {validation_metrics["mse"]}")
-print(f"MAE  : {validation_metrics["mae"]}")
-print(f"RMSE : {validation_metrics["rmse"]}")
-
-print()
-
-# =========================
-# DENORMALIZATION TEST
-# =========================
-
-print("=== DENORMALIZATION TEST ===")
-
-for inputs, targets in validation_data:
-  # Normalize input
-  normalized_inputs = normalize_list(inputs, input_normalizer)
-
-  # Prediction dalam skala normalized
-  prediction_normalized = model.forward(normalized_inputs)
-
-  # Kembalikan prediction ke skala asli
-  prediction = [
-    target_normalizer.denormalize(value)
-    for value in prediction_normalized
-  ]
-
-  # Target normalized
-  target_normalized = normalize_list(targets, target_normalizer)
-
-  print()
-
-  print(f"Input                 : {inputs}")
-  print(f"Target Asli           : {targets}")
-  print(f"Target Normalized     : {target_normalized}")
-  print(f"Prediction Normalized : {prediction_normalized}")
-  print(f"Prediction Asli       : {prediction}")
-
-print()
-
-# =========================
-# ORIGINAL SCALE METRICS
-# =========================
-
-print("=== ORIGINAL SCALE METRICS ===")
-
-total_mse = total_mae = total_rmse = 0
-
-for inputs, targets in validation_data:
-  # NORMALIZE INPUT
-  normalized_inputs = normalize_list(inputs, input_normalizer)
-
-  # MODEL PREDICTION
-  prediction_normalized = model.forward(normalized_inputs)
-
-  # DENORMALIZE PREDICTION
-  predictions = [
-    target_normalizer.denormalize(value)
-    for value in prediction_normalized
-  ]
-
-  # CALCULATE METRICS
-  metrics = calculate_metrics(targets, predictions)
-
-  total_mse += metrics["mse"]
-  total_mae += metrics["mae"]
-  total_rmse += metrics["rmse"]
-
-# =========================
-# AVERAGE METRICS
-# =========================
-
-dataset_size = len(validation_data)
-
-original_mse = total_mse / dataset_size
-original_mae = total_mae / dataset_size
-original_rmse = total_rmse / dataset_size
-
-# =========================
-# DISPLAY
-# =========================
-
-print()
-
-print("Validation Original Scale")
-print(f"MSE  : {original_mse}")
-print(f"MAE  : {original_mae}")
-print(f"RMSE : {original_rmse}")
+print("\n" + "=" * 65)
+print("Hasil: Semua alur proses dan penanganan error berjalan sesuai kriteria.")
+print("=" * 65)

@@ -1,42 +1,75 @@
-# Bagian untuk melatih Model
+# Bagian untuk melakukan pelatihan pd Model
 
 import random
 import copy
 
-from metrics import calculate_metrics
-from loss import mse, mse_gradient
+from typing import TypedDict, Literal
+from model import Model
+from dataset import Dataset
+from loss import mse_gradient
+from metrics import Metrics, calculate_metrics
+
+
+# ====================
+# === TYPE CHECKER ===
+# ====================
+
+ScaleData = Literal["normalize", "original"]
+
+class ScaleMetrics(TypedDict):
+  training_metrics: Metrics
+  validation_metrics: Metrics
+
+class History(TypedDict):
+  epochs: list[int]
+  normalize_scale: ScaleMetrics
+  original_scale: ScaleMetrics
+
+class FullTrainingResult(TypedDict):
+  history: History
+  best_epoch: int
+  last_epoch: int
+  best_validation_mse: float
+
+
+# =============
+# === CLASS ===
+# =============
 
 class Trainer:
   # CONSTRUCTOR — Initialization
-  def __init__(self, model):
+  def __init__(self, model: Model):
     self.model = model
 
   # CREATE BATCH — Membuat kumpulan data yg diproses secara bersamaan dlm 1x proses NN
-  def create_batches(self, dataset, batch_size):
+  def create_batches(self, dataset: Dataset, batch_size: int) -> list[Dataset]:
     # Buat Duplikat dari Dataset
     shuffle_dataset = dataset.copy()
 
     # Shuffle data agar mengurangi ketergantungan Model pd pola urutan
     random.shuffle(shuffle_dataset)
 
-    batches = []
+    # Menampung Kumpulan Batch
+    batches: list[Dataset] = []
 
     # Proses pembagian data menjadi Batch² kecil
     for i in range(0, len(shuffle_dataset), batch_size):
       # Slicing Index
       batch = shuffle_dataset[i:(i + batch_size)]
 
+      # Masukan ke dlm list `batches`
       batches.append(batch)
 
     return batches
 
   # TRAIN — Melatih Model
-  def train(self, dataset, batch_size):
+  def train(self, dataset: Dataset, batch_size: int) -> Metrics:
     # Buat Batch
     batches = self.create_batches(dataset, batch_size)
 
     # Proses Mini-Batch
     for batch in batches:
+      # Proses tiap Batch
       for inputs, targets in batch:
         # Forward
         predictions = self.model.forward(inputs)
@@ -56,15 +89,14 @@ class Trainer:
       # Reset Gradient
       self.model.reset_gradient()
 
-    # Hitung Metrics setelah Batch selesai
-    training_metrics = self.evaluate(dataset)
-    
-    return training_metrics
+    # Hitung & Kembalikan Metrics setelah Batch selesai
+    return self.evaluate(dataset)
 
   # EVALUATE — Validasi Model
-  def evaluate(self, dataset):
-    total_mse = total_mae = total_rmse = 0
-  
+  def evaluate(self, dataset: Dataset, scale: ScaleData) -> Metrics:
+    total_mse = total_mae = total_rmse = 0.0
+
+    # Proses tiap list Data
     for inputs, targets in dataset:
       # Forward
       predictions = self.model.forward(inputs)
@@ -84,18 +116,6 @@ class Trainer:
       "rmse": total_rmse / len(dataset),
     }
 
-  def evaluate_original(self, dataset):
-    total_mse = total_mae = total_rmse = 0
-
-    for inputs, targets in dataset:
-      # Forward
-      predictions = self.model.forward(inputs)
-
-      # Denormalisasi Target
-      original_targets = [
-        self.
-      ]
-
   # SAVE MODEL — State untuk menyimpan Weight & Bias Model
   def save_model(self):
     return copy.deepcopy(self.model.layers)
@@ -103,28 +123,29 @@ class Trainer:
   # RESTORE MODEL — State untuk engembalikan Weight & Bias Model
   def restore_model(self, best_state):
     self.model.layers = copy.deepcopy(best_state)
-  
+
   # FIT — Melakukan Test Model secara keseluruhan
   def fit(
     self,
-    training_data,
-    validation_data,
-    epochs,
-    batch_size,
-    patience=10
-  ):
+    training_data: Dataset,
+    validation_data: Dataset,
+    epochs: int,
+    batch_size: int,
+    patience: int = 10,
+  ) -> FullTrainingResult:
     # Histroy Training
-    history = {
+    history: History = {
       # Epoch List
       "epochs": [],
 
-      # Metrics Versi Normalisasi
+      # Metrics Bentuk Normalisasi
       "normalize_scale": {
         "training_metrics": {
           "mse": [],
           "mae": [],
           "rmse": [],
         },
+
         "validation_metrics": {
           "mse": [],
           "mae": [],
@@ -132,13 +153,14 @@ class Trainer:
         },
       },
 
-      # Metrics Versi Original
+      # Metrics Bentuk Original
       "original_scale": {
         "training_metrics": {
           "mse": [],
           "mae": [],
           "rmse": [],
         },
+
         "validation_metrics": {
           "mse": [],
           "mae": [],
@@ -147,7 +169,6 @@ class Trainer:
       },
     }
 
-    # Early Stopping & Restore Best Model Initialization
     best_validation_mse = float("inf")   # Float positif tak terhingga
     best_model = None
     best_epoch = 0
@@ -215,7 +236,7 @@ class Trainer:
     # Restore Best Model
     if (best_model is not None):
       self.restore_model(best_model)
-      
+
     return {
       "history": history,
       "best_epoch": best_epoch,

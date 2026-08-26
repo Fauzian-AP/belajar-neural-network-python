@@ -1,8 +1,10 @@
-# Bagian yg mengatur Struktur Neuron
-from neuron import Neuron
+# Merupakan Bagian Lapisan yg mengatur Sekumpulan Neuron pd Sistem Neural Network
+
+from typing import Sequence
+from neuron import ActivationType, Neuron
 
 class Layer:
-  # CONSTRUCTOR
+  # CONSTRUCTOR — Initialization
   def __init__(
     self,
     input_size,
