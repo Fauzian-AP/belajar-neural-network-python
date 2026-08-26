@@ -84,6 +84,18 @@ class Trainer:
       "rmse": total_rmse / len(dataset),
     }
 
+  def evaluate_original(self, dataset):
+    total_mse = total_mae = total_rmse = 0
+
+    for inputs, targets in dataset:
+      # Forward
+      predictions = self.model.forward(inputs)
+
+      # Denormalisasi Target
+      original_targets = [
+        self.
+      ]
+
   # SAVE MODEL — State untuk menyimpan Weight & Bias Model
   def save_model(self):
     return copy.deepcopy(self.model.layers)
@@ -103,9 +115,36 @@ class Trainer:
   ):
     # Histroy Training
     history = {
-      "epoch": [],
-      "training_data": [],
-      "validation_data": [],
+      # Epoch List
+      "epochs": [],
+
+      # Metrics Versi Normalisasi
+      "normalize_scale": {
+        "training_metrics": {
+          "mse": [],
+          "mae": [],
+          "rmse": [],
+        },
+        "validation_metrics": {
+          "mse": [],
+          "mae": [],
+          "rmse": [],
+        },
+      },
+
+      # Metrics Versi Original
+      "original_scale": {
+        "training_metrics": {
+          "mse": [],
+          "mae": [],
+          "rmse": [],
+        },
+        "validation_metrics": {
+          "mse": [],
+          "mae": [],
+          "rmse": [],
+        },
+      },
     }
 
     # Early Stopping & Restore Best Model Initialization

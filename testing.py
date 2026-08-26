@@ -179,7 +179,7 @@ print()
 
 print("=== ORIGINAL SCALE METRICS ===")
 
-total_mse total_mae total_rmse = 0
+total_mse = total_mae = total_rmse = 0
 
 for inputs, targets in validation_data:
   # NORMALIZE INPUT
