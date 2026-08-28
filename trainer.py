@@ -5,9 +5,9 @@ import copy
 
 from typing import TypedDict, Literal
 from model import Model
-from dataset import Dataset
-from loss import mse_gradient
-from metrics import Metrics, calculate_metrics
+from custom_types import Dataset, Datasets, Metrics
+from loss import MSE_gradient
+from metrics import calculate_metrics
 
 
 # ====================
@@ -42,20 +42,20 @@ class Trainer:
     self.model = model
 
   # CREATE BATCH — Membuat kumpulan data yg diproses secara bersamaan dlm 1x proses NN
-  def create_batches(self, dataset: Dataset, batch_size: int) -> list[Dataset]:
+  def create_batches(self, dataset: Dataset, batch_size: int) -> Datasets:
     # Buat Duplikat dari Dataset
-    shuffle_dataset = dataset.copy()
+    shuffle_dataset = list(dataset)
 
     # Shuffle data agar mengurangi ketergantungan Model pd pola urutan
     random.shuffle(shuffle_dataset)
 
     # Menampung Kumpulan Batch
-    batches: list[Dataset] = []
+    batches: Datasets = []
 
     # Proses pembagian data menjadi Batch² kecil
     for i in range(0, len(shuffle_dataset), batch_size):
       # Slicing Index
-      batch = shuffle_dataset[i:(i + batch_size)]
+      batch = shuffle_dataset[i : i + batch_size]
 
       # Masukan ke dlm list `batches`
       batches.append(batch)
@@ -69,13 +69,12 @@ class Trainer:
 
     # Proses Mini-Batch
     for batch in batches:
-      # Proses tiap Batch
       for inputs, targets in batch:
         # Forward
         predictions = self.model.forward(inputs)
 
         # Gradient Loss
-        gradient_output = mse_gradient(targets, predictions)
+        gradient_output = MSE_gradient(targets, predictions)
     
         # Backward
         self.model.backward(inputs, gradient_output)
@@ -89,7 +88,7 @@ class Trainer:
       # Reset Gradient
       self.model.reset_gradient()
 
-    # Hitung & Kembalikan Metrics setelah Batch selesai
+    # Kembalikan Metrics pelatihan setelah 1 Epoch selesai
     return self.evaluate(dataset)
 
   # EVALUATE — Validasi Model
@@ -140,32 +139,14 @@ class Trainer:
 
       # Metrics Bentuk Normalisasi
       "normalize_scale": {
-        "training_metrics": {
-          "mse": [],
-          "mae": [],
-          "rmse": [],
-        },
-
-        "validation_metrics": {
-          "mse": [],
-          "mae": [],
-          "rmse": [],
-        },
+        "training_metrics": {"MSE": [], "MAE": [], "RMSE": []},
+        "validation_metrics": {"MSE": [], "MAE": [], "RMSE": []},
       },
 
       # Metrics Bentuk Original
       "original_scale": {
-        "training_metrics": {
-          "mse": [],
-          "mae": [],
-          "rmse": [],
-        },
-
-        "validation_metrics": {
-          "mse": [],
-          "mae": [],
-          "rmse": [],
-        },
+        "training_metrics": {"MSE": [], "MAE": [], "RMSE": []},
+        "validation_metrics": {"MSE": [], "MAE": [], "RMSE": []},
       },
     }
 
@@ -207,15 +188,15 @@ class Trainer:
         # Update patience
         patience_counter += 1
 
-      # Log Epochs
+      # Log Kemajuan Epoch
       if epoch % 100 == 0:
         print(f"=== Epoch {epoch} ===")
-        print(f"Training MSE    : {training_loss["mse"]}")
-        print(f"Training MAE    : {training_loss["mae"]}")
-        print(f"Training RMSE   : {training_loss["rmse"]}")
-        print(f"Validation MSE  : {validation_loss['mse']}")
-        print(f"Validation MAE  : {validation_loss['mae']}")
-        print(f"Validation RMSE : {validation_loss['rmse']}")
+        print(f"Training MSE    : {training_loss["MSE"]:.6f}")
+        print(f"Training MAE    : {training_loss["MAE"]:.6f}")
+        print(f"Training RMSE   : {training_loss["RMSE"]:.6f}")
+        print(f"Validation MSE  : {validation_loss["MSE"]:.6f}")
+        print(f"Validation MAE  : {validation_loss["MAE"]:.6f}")
+        print(f"Validation RMSE : {validation_loss["RMSE"]:.6f}")
         print(f"Patience        : {patience_counter}/{patience}")
         print()
 
@@ -227,7 +208,7 @@ class Trainer:
         print("=== EARLY STOPPING ===")
         print(f"Epoch               : {last_epoch}")
         print(f"Best Epoch          : {best_epoch}")
-        print(f"Best Validation MSE : {best_validation_mse}")
+        print(f"Best Validation MSE : {best_validation_mse:.6f}")
         print()
 
         # Hentikan Epoch
@@ -240,6 +221,6 @@ class Trainer:
     return {
       "history": history,
       "best_epoch": best_epoch,
-      "best_validation_mse": best_validation_mse,
       "last_epoch": last_epoch,
+      "best_validation_mse": best_validation_mse,
     }

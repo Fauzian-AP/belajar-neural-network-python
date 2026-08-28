@@ -1,26 +1,15 @@
 # Bagian Metrics, yaitu ukuran yg gunakan untuk mengetahui seberapa bagus performa Model
 
-from typing import TypedDict
-from loss import mse, mae, rmse
+from pydantic import validate_call
 
+from custom_types import SequenceFloat, Metrics
+from loss import MSE, MAE, RMSE
 
-# ====================
-# === TYPE CHECKER ===
-# ====================
-
-class Metrics(TypedDict):
-  mse: float
-  mae: float
-  rmse: float
-
-
-# ========================
-# === FUNCTION METRICS ===
-# ========================
-
-def calculate_metrics(targets: list[float], predictions: list[float]) -> Metrics:
+# PERHITUNGAN METRICS
+@validate_call
+def calculate_metrics(targets: SequenceFloat, predictions: SequenceFloat) -> Metrics:
   return {
-    "mse": mse(targets, predictions),
-    "mae": mae(targets, predictions),
-    "rmse": rmse(targets, predictions),
+    "MSE": MSE(targets, predictions),
+    "MAE": MAE(targets, predictions),
+    "RMSE": RMSE(targets, predictions),
   }

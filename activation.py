@@ -1,30 +1,19 @@
 # Bagian Pengelolaan Activation Function yaitu:
 # Rumus MTK pd Neural Network yg menentukan apakah suatu Neuron hrs aktif & menghasilkan Output
 
-from typing import Union
+from custom_types import Numeric
 
-
-# ====================
-# === TYPE CHECKER ===
-# ====================
-
-Numeric = Union[int, float]
-
-
-# ===========================
-# === ACTIVATION FUNCTION ===
-# ===========================
+# RELU ACTIVATION
 
 # Menghitung fungsi aktivasi ReLU (Rectified Linear Unit)
-def relu(input: Numeric) -> float:
-  # Rumus: f(x) = max(0, x)
-  is_active = input if (input > 0) else 0
-
-  return is_active
+def ReLU(input: Numeric) -> float:
+  """ f(x) = max(0, x) """
+  return input if (input > 0) else 0
 
 # Menghitung Gradient dari fungsi aktivasi ReLU
-def relu_derivative(pre_activation) -> float:
-  # Rumus: f'(x) = 1 jika x > 0, else 0
-  is_active = 1 if (pre_activation > 0) else 0
-
-  return is_active
+def ReLU_gradient(pre_activation: Numeric) -> float:
+  """
+  f'(x) = { 1 jika x > 0
+          { 0 jika x ⩽ 0
+  """
+  return 1 if (pre_activation > 0) else 0

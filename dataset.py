@@ -1,21 +1,6 @@
 # Bagian Pengelolaan Data² yg akan digunakan dlm melatih Model
 
-
-# ====================
-# === TYPE CHECKER ===
-# ====================
-
-Dataset = list[
-  tuple[
-    list[float],
-    list[float],
-  ]
-]
-
-
-# ============
-# === DATA ===
-# ============
+from custom_types import Dataset
 
 # TRAINING --> Model belajar dari data ini
 training_data: Dataset = [
