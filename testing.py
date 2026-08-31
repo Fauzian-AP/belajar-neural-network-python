@@ -1,118 +1,561 @@
+# =================================================================
+# === IMPORT ======================================================
+# =================================================================
+
 import math
 
 from pydantic import ValidationError
 
-from loss import MAE, MSE, MSE_gradient, RMSE
-from metrics import calculate_metrics
+from loss import MSE
+from metrics import MAE, RMSE, calculate_metrics
+from normalizer import (
+  Normalizer,
+  normalize_list,
+  denormalize_list,
+)
 
+# =================================================================
+# === HELPER ERROR HANDLING =======================================
+# =================================================================
+
+def test_exception(description: str, func) -> None:
+  # Jalankan fungsi yang diharapkan menghasilkan Error
+  try:
+    func()
+
+    # Jika tidak menghasilkan Error
+    print(f"[FAIL] {description} -> TIDAK melempar error!")
+
+  # Tangkap Error dari validasi
+  except (ValueError, ValidationError) as e:
+    # Ambil baris pertama pesan Error
+    error_msg = str(e).split("\n")[0]
+
+    print(f"[PASS] {description}")
+    print(f'       Pesan Error Ditangkap: "{error_msg}"')
+
+
+# =================================================================
+# === 1. PENGUJIAN KALKULASI LOSS FUNCTION =======================
+# =================================================================
 
 print("=" * 65)
 print("=== 1. PENGUJIAN KALKULASI MATEMATIS LOSS FUNCTION ===")
 print("=" * 65)
 
+# DATA
 targets = [3.0, -0.5, 2.0, 7.0]
 predictions = [2.5, 0.0, 2.0, 8.0]
 
-# Perhitungan Manual (N = 4):
-# Error (Prediksi - Target) : [-0.5, 0.5, 0.0, 1.0]
-# Squared Error             : [0.25, 0.25, 0.0, 1.0] -> Total = 1.5
-# MSE                       : 1.5 / 4 = 0.375
-# MAE                       : (0.5 + 0.5 + 0.0 + 1.0) / 4 = 0.5
-# RMSE                      : √0.375 ≈ 0.6123724356957945
-# MSE Grad                  : (2/4) * (Prediksi - Target) = 0.5 * [-0.5, 0.5, 0.0, 1.0]
-#                           = [-0.25, 0.25, 0.0, 0.5]
+# =================================================================
+# === PERHITUNGAN MANUAL ==========================================
+# =================================================================
 
-calc_mse = MSE(targets, predictions)
-calc_mae = MAE(targets, predictions)
-calc_rmse = RMSE(targets, predictions)
-calc_grad = MSE_gradient(targets, predictions)
+# Jumlah data:
+# N = 4
+
+# Error (Prediksi - Target):
+# [-0.5, 0.5, 0.0, 1.0]
+
+# Squared Error:
+# [0.25, 0.25, 0.0, 1.0]
+
+# Total Squared Error:
+# 1.5
+
+# MSE:
+# 1.5 / 4 = 0.375
+
+# MAE:
+# (0.5 + 0.5 + 0.0 + 1.0) / 4 = 0.5
+
+# RMSE:
+# √0.375 ≈ 0.612372
+
+# MSE Gradient:
+# (2 / 4) × (Prediksi - Target)
+#
+# = 0.5 × [-0.5, 0.5, 0.0, 1.0]
+#
+# = [-0.25, 0.25, 0.0, 0.5]
+
+
+# =================================================================
+# === CALCULATE ==================================================
+# =================================================================
+
+calc_mse = MSE.calculate(
+  targets,
+  predictions,
+)
+
+calc_mae = MAE.calculate(
+  targets,
+  predictions,
+)
+
+calc_rmse = RMSE.calculate(
+  targets,
+  predictions,
+)
+
+calc_grad = MSE.gradient(
+  targets,
+  predictions,
+)
+
+
+# =================================================================
+# === TAMPILKAN HASIL =============================================
+# =================================================================
 
 print(f"Target      : {targets}")
 print(f"Predictions : {predictions}\n")
 
-print(f"[MSE]  Hasil: {calc_mse} (Ekspektasi: 0.375)")
-assert math.isclose(calc_mse, 0.375), "Pengujian MSE Gagal!"
 
-print(f"[MAE]  Hasil: {calc_mae} (Ekspektasi: 0.5)")
-assert math.isclose(calc_mae, 0.5), "Pengujian MAE Gagal!"
+# =================================================================
+# === TEST MSE ====================================================
+# =================================================================
 
-print(f"[RMSE] Hasil: {calc_rmse:.6f} (Ekspektasi: 0.612372)")
-assert math.isclose(calc_rmse, math.sqrt(0.375)), "Pengujian RMSE Gagal!"
+print(
+  f"[MSE]  Hasil: {calc_mse} "
+  "(Ekspektasi: 0.375)"
+)
 
-print(f"[GRAD] Hasil: {calc_grad} (Ekspektasi: [-0.25, 0.25, 0.0, 0.5])")
-assert calc_grad == [-0.25, 0.25, 0.0, 0.5], "Pengujian MSE_gradient Gagal!"
+assert math.isclose(
+  calc_mse,
+  0.375,
+), "Pengujian MSE Gagal!"
+
+
+# =================================================================
+# === TEST MAE ====================================================
+# =================================================================
+
+print(
+  f"[MAE]  Hasil: {calc_mae} "
+  "(Ekspektasi: 0.5)"
+)
+
+assert math.isclose(
+  calc_mae,
+  0.5,
+), "Pengujian MAE Gagal!"
+
+
+# =================================================================
+# === TEST RMSE ===================================================
+# =================================================================
+
+print(
+  f"[RMSE] Hasil: {calc_rmse:.6f} "
+  "(Ekspektasi: 0.612372)"
+)
+
+assert math.isclose(
+  calc_rmse,
+  math.sqrt(0.375),
+), "Pengujian RMSE Gagal!"
+
+
+# =================================================================
+# === TEST MSE GRADIENT ===========================================
+# =================================================================
+
+expected_grad = [
+  -0.25,
+  0.25,
+  0.0,
+  0.5,
+]
+
+print(
+  f"[GRAD] Hasil: {calc_grad} "
+  f"(Ekspektasi: {expected_grad})"
+)
+
+assert all(
+  math.isclose(actual, expected)
+  for actual, expected
+  in zip(calc_grad, expected_grad)
+), "Pengujian MSE Gradient Gagal!"
+
+
+# =================================================================
+# === 2. PENGUJIAN ERROR HANDLING LOSS FUNCTION ===================
+# =================================================================
+
+print("\n" + "=" * 65)
+print("=== 2. PENGUJIAN ERROR HANDLING LOSS FUNCTION ===")
+print("=" * 65)
+
+
+# =================================================================
+# === TEST TARGET KOSONG ==========================================
+# =================================================================
+
+test_exception(
+  "MSE dengan target kosong",
+  lambda: MSE.calculate(
+    [],
+    [1.0, 2.0],
+  ),
+)
+
+
+# =================================================================
+# === TEST PANJANG TIDAK COCOK ====================================
+# =================================================================
+
+test_exception(
+  "MSE dengan panjang berbeda",
+  lambda: MSE.calculate(
+    [1.0, 2.0],
+    [1.0],
+  ),
+)
+
+
+# =================================================================
+# === TEST MSE GRADIENT KOSONG =====================================
+# =================================================================
+
+test_exception(
+  "MSE Gradient dengan input kosong",
+  lambda: MSE.gradient(
+    [],
+    [],
+  ),
+)
+
+
+# =================================================================
+# === TEST MAE PANJANG TIDAK COCOK ================================
+# =================================================================
+
+test_exception(
+  "MAE dengan panjang berbeda",
+  lambda: MAE.calculate(
+    [1.0],
+    [1.0, 2.0],
+  ),
+)
 
 
 print("\n" + "=" * 65)
-print("=== 2. PENGUJIAN ERROR HANDLING & VALIDASI LOSS FUNCTION ===")
+print("Hasil: Seluruh pengujian Loss Function LULUS!")
 print("=" * 65)
 
-def test_exception(description: str, func) -> None:
-  try:
-    func()
-    print(f"[FAIL] {description} -> TIDAK melempar error!")
-  except (ValueError, ValidationError) as e:
-    error_msg = str(e).split("\n")[0]
-    print(f"[PASS] {description}")
-    print(f'       Pesan Error Ditangkap: "{error_msg}"')
 
-# 1. Target Kosong
-test_exception("MSE dengan target kosong ([])", lambda: MSE([], [1.0, 2.0]))
-
-# 2. Panjang Tidak Cocok
-test_exception("MSE dengan panjang beda ([1.0, 2.0] vs [1.0])", lambda: MSE([1.0, 2.0], [1.0]),)
-
-# 3. MSE Gradient Kosong
-test_exception("MSE_gradient dengan input kosong", lambda: MSE_gradient([], []))
-
-# 4. MAE Panjang Tidak Cocok
-test_exception("MAE dengan panjang beda ([1.0] vs [1.0, 2.0])", lambda: MAE([1.0], [1.0, 2.0]),)
+# =================================================================
+# === 3. PENGUJIAN KALKULASI METRICS ==============================
+# =================================================================
 
 print("\n" + "=" * 65)
-print("Hasil: Seluruh pengujian matematika & validasi loss.py LULUS!")
+print("=== 3. PENGUJIAN KALKULASI METRICS ===")
 print("=" * 65)
 
 
-
-print("=" * 65)
-print("=== 1. PENGUJIAN KALKULASI METRICS ===")
-print("=" * 65)
-
+# DATA
 targets = [3.0, -0.5, 2.0, 7.0]
 predictions = [2.5, 0.0, 2.0, 8.0]
 
-metrics_res = calculate_metrics(targets, predictions)
+
+# =================================================================
+# === HITUNG METRICS ==============================================
+# =================================================================
+
+metrics_result = calculate_metrics(
+  targets,
+  predictions,
+)
+
+
+# =================================================================
+# === TAMPILKAN HASIL =============================================
+# =================================================================
 
 print(f"Target      : {targets}")
 print(f"Predictions : {predictions}\n")
+
 print("Hasil Dictionary Metrics:")
-for k, v in metrics_res.items():
-  print(f"  - {k}: {v}")
 
-assert math.isclose(metrics_res["MSE"], 0.375), "Metrics MSE salah!"
-assert math.isclose(metrics_res["MAE"], 0.5), "Metrics MAE salah!"
-assert math.isclose(metrics_res["RMSE"], math.sqrt(0.375)), "Metrics RMSE salah!"
+for key, value in metrics_result.items():
+  print(f"  - {key}: {value}")
 
+
+# =================================================================
+# === TEST MSE ====================================================
+# =================================================================
+
+assert math.isclose(
+  metrics_result["MSE"],
+  0.375,
+), "Metrics MSE salah!"
+
+
+# =================================================================
+# === TEST MAE ====================================================
+# =================================================================
+
+assert math.isclose(
+  metrics_result["MAE"],
+  0.5,
+), "Metrics MAE salah!"
+
+
+# =================================================================
+# === TEST RMSE ===================================================
+# =================================================================
+
+assert math.isclose(
+  metrics_result["RMSE"],
+  math.sqrt(0.375),
+), "Metrics RMSE salah!"
+
+
+# =================================================================
+# === 4. PENGUJIAN ERROR HANDLING METRICS =========================
+# =================================================================
 
 print("\n" + "=" * 65)
-print("=== 2. PENGUJIAN ERROR HANDLING METRICS ===")
+print("=== 4. PENGUJIAN ERROR HANDLING METRICS ===")
 print("=" * 65)
 
-def test_exception(description: str, func) -> None:
-  try:
-    func()
-    print(f"[FAIL] {description} -> TIDAK melempar error!")
-  except (ValueError, ValidationError) as e:
-    error_msg = str(e).split("\n")[0]
-    print(f"[PASS] {description}")
-    print(f'       Pesan Error Ditangkap: "{error_msg}"')
 
-# 1. Input Kosong
-test_exception("Calculate Metrics dengan list kosong", lambda: calculate_metrics([], []))
+# =================================================================
+# === TEST INPUT KOSONG ===========================================
+# =================================================================
 
-# 2. Panjang Beda
-test_exception("Calculate Metrics dengan panjang beda",lambda: calculate_metrics([1.0, 2.0], [1.0]),)
+test_exception(
+  "Calculate Metrics dengan list kosong",
+  lambda: calculate_metrics(
+    [],
+    [],
+  ),
+)
+
+
+# =================================================================
+# === TEST PANJANG BERBEDA ========================================
+# =================================================================
+
+test_exception(
+  "Calculate Metrics dengan panjang berbeda",
+  lambda: calculate_metrics(
+    [1.0, 2.0],
+    [1.0],
+  ),
+)
+
 
 print("\n" + "=" * 65)
-print("Hasil: Seluruh pengujian metrics.py LULUS!")
+print("Hasil: Seluruh pengujian Metrics LULUS!")
+print("=" * 65)
+
+
+# =================================================================
+# === 5. PENGUJIAN MIN-MAX NORMALIZATION =========================
+# =================================================================
+
+print("\n" + "=" * 65)
+print("=== 5. PENGUJIAN MIN-MAX NORMALIZATION ===")
+print("=" * 65)
+
+
+# =================================================================
+# === DATA ========================================================
+# =================================================================
+
+values = [
+  10.0,
+  20.0,
+  30.0,
+  40.0,
+  50.0,
+]
+
+
+# =================================================================
+# === BUAT NORMALIZER =============================================
+# =================================================================
+
+normalizer = Normalizer()
+
+
+# =================================================================
+# === FIT =========================================================
+# =================================================================
+
+normalizer.fit(values)
+
+
+print(f"Data    : {values}")
+print(f"Minimum : {normalizer.minimum}")
+print(f"Maximum : {normalizer.maximum}")
+
+
+# =================================================================
+# === TEST MINIMUM & MAXIMUM ======================================
+# =================================================================
+
+assert normalizer.minimum == 10.0
+assert normalizer.maximum == 50.0
+
+
+# =================================================================
+# === 6. PENGUJIAN NORMALIZE ======================================
+# =================================================================
+
+print("\n" + "=" * 65)
+print("=== 6. PENGUJIAN NORMALIZE ===")
+print("=" * 65)
+
+
+# =================================================================
+# === NORMALIZE ===================================================
+# =================================================================
+
+normalized = normalize_list(
+  values,
+  normalizer,
+)
+
+
+print(f"Original  : {values}")
+print(f"Normalized: {normalized}")
+
+
+# =================================================================
+# === HASIL YANG DIHARAPKAN =======================================
+# =================================================================
+
+expected_normalized = [
+  0.0,
+  0.25,
+  0.5,
+  0.75,
+  1.0,
+]
+
+
+# =================================================================
+# === TEST NORMALIZATION ==========================================
+# =================================================================
+
+assert all(
+  math.isclose(actual, expected)
+  for actual, expected
+  in zip(
+    normalized,
+    expected_normalized,
+  )
+), "Pengujian Normalisasi Gagal!"
+
+
+# =================================================================
+# === 7. PENGUJIAN DENORMALIZE ====================================
+# =================================================================
+
+print("\n" + "=" * 65)
+print("=== 7. PENGUJIAN DENORMALIZE ===")
+print("=" * 65)
+
+
+# =================================================================
+# === DENORMALIZE =================================================
+# =================================================================
+
+denormalized = denormalize_list(
+  normalized,
+  normalizer,
+)
+
+
+print(f"Normalized  : {normalized}")
+print(f"Denormalized: {denormalized}")
+
+
+# =================================================================
+# === TEST DENORMALIZATION ========================================
+# =================================================================
+
+assert all(
+  math.isclose(actual, expected)
+  for actual, expected
+  in zip(
+    denormalized,
+    values,
+  )
+), "Pengujian Denormalisasi Gagal!"
+
+
+# =================================================================
+# === 8. PENGUJIAN ERROR HANDLING NORMALIZER ======================
+# =================================================================
+
+print("\n" + "=" * 65)
+print("=== 8. PENGUJIAN ERROR HANDLING NORMALIZER ===")
+print("=" * 65)
+
+
+# =================================================================
+# === TEST FIT DENGAN DATA KOSONG =================================
+# =================================================================
+
+test_exception(
+  "Normalizer.fit dengan values kosong",
+  lambda: Normalizer().fit([]),
+)
+
+
+# =================================================================
+# === TEST FIT DENGAN NILAI SAMA ==================================
+# =================================================================
+
+test_exception(
+  "Normalizer.fit dengan semua nilai sama",
+  lambda: Normalizer().fit(
+    [5.0, 5.0, 5.0],
+  ),
+)
+
+
+# =================================================================
+# === TEST NORMALIZE SEBELUM FIT ==================================
+# =================================================================
+
+test_exception(
+  "Normalizer.normalize sebelum fit",
+  lambda: Normalizer().normalize(5.0),
+)
+
+
+# =================================================================
+# === TEST DENORMALIZE SEBELUM FIT ================================
+# =================================================================
+
+test_exception(
+  "Normalizer.denormalize sebelum fit",
+  lambda: Normalizer().denormalize(0.5),
+)
+
+
+print("\n" + "=" * 65)
+print("Hasil: Seluruh pengujian Normalizer LULUS!")
+print("=" * 65)
+
+
+# =================================================================
+# === FINAL =======================================================
+# =================================================================
+
+print("\n" + "=" * 65)
+print("=== SEMUA PENGUJIAN BERHASIL ===")
+print("=" * 65)
+
+print("Loss Function : LULUS")
+print("Metrics       : LULUS")
+print("Normalizer    : LULUS")
+
 print("=" * 65)

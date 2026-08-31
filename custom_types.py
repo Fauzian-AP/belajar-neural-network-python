@@ -9,12 +9,13 @@ Numeric = Union[int, float]
 ListFloat = list[float]
 SequenceFloat = Sequence[float]
 
-# Struktur Dataset
+# Aliases Dataset
+
 Dataset: TypeAlias = list[
   tuple[ListFloat, ListFloat]
 ]
-
-Datasets: TypeAlias = list[Dataset]
+ListDataset: TypeAlias = list[Dataset]
+DictDataset: TypeAlias = dict[str, Dataset]
 
 # Struktur Metrics
 class Metrics(TypedDict):
