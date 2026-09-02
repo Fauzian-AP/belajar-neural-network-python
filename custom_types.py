@@ -1,19 +1,23 @@
 # Bagian Pengelolaan Type Checking Project Neural Network
 
 from enum import Enum
-from typing import Annotated, Sequence, Union, TypedDict, TypeAlias
 from pydantic import Field
+from typing import (
+  Annotated,
+  Sequence,
+  Union, 
+  TypedDict, 
+  TypeAlias,
+)
 
 # Aliases Number
 Numeric = Union[int, float]
+ListInt = list[int]
 ListFloat = list[float]
 SequenceFloat = Sequence[float]
 
 # Aliases Dataset
-
-Dataset: TypeAlias = list[
-  tuple[ListFloat, ListFloat]
-]
+Dataset: TypeAlias = list[tuple[ListFloat, ListFloat]]
 ListDataset: TypeAlias = list[Dataset]
 DictDataset: TypeAlias = dict[str, Dataset]
 
@@ -31,3 +35,8 @@ PositiveFloat = Annotated[float, Field(gt=0, description="Angka desimal harus > 
 class ActivationType(str, Enum):
   NONE = "none"
   RELU = "ReLU"
+
+# Enum Scale Data
+class ScaleType(str, Enum):
+  ORIGINAL = "original"
+  NORMALIZE = "normalize"

@@ -29,7 +29,7 @@ class Model:
         input_size = 4,
         neuron_count = 4,
         learning_rate = learning_rate,
-        activation = ActivationType.RELU,
+        activation = ActivationType.NONE,
       ),
     
       # Output Layer

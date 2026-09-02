@@ -102,7 +102,7 @@ class Neuron:
     self.gradient_weights = [0.0] * self.input_size
 
     # Gradient Bias
-    self.gradient_bias = 0
+    self.gradient_bias = 0.0
 
   # AVERAGE GRADIENT — Menghitung rata² Gradient Weight & Bias
   @validate_call

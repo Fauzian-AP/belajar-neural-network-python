@@ -2,7 +2,7 @@
 
 from pydantic import validate_call
 
-from neuron import  Neuron
+from neuron import Neuron
 from custom_types import (
   ListFloat,
   SequenceFloat,
