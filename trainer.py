@@ -31,7 +31,7 @@ class FitTestResult(TypedDict):
   history: History
   best_epoch: int
   last_epoch: int
-  best_validation_mse: float
+  best_validating_mse: float
 
 # CLASS TRAINER
 
@@ -61,7 +61,7 @@ class Trainer:
         gradient_outputs = MSE.gradient(targets, predictions)
     
         # Backward
-        self.model.backward(inputs, gradient_outputs)
+        self.model.backward(gradient_outputs)
 
       # Average Gradient
       self.model.average_gradient(len(batch))
@@ -135,7 +135,7 @@ class Trainer:
         "RMSE": []
       },
 
-      # Menyimpan Metrics dari Evaluasi
+      # Menyimpan Metrics dari Validating
       "validating_metrics": {
         "MSE": [],
         "MAE": [],
@@ -163,7 +163,7 @@ class Trainer:
       # Training
       training_loss = self.training(training_data, batch_size)
 
-      # Validation
+      # Validating
       validating_loss = self.evaluating(validating_data)
 
       # Simpan Nomor Epoch
@@ -179,12 +179,12 @@ class Trainer:
       history["validating_metrics"]["MAE"].append(validating_loss["MAE"])
       history["validating_metrics"]["RMSE"].append(validating_loss["RMSE"])
 
-      # Ambil Validation MSE
+      # Ambil Validating MSE
       validating_mse = validating_loss["MSE"]
 
       # Jika Model Membaik
       if (validating_mse < best_validating_mse):
-        # Simpan Validation MSE yg terbaik
+        # Simpan Validating MSE yg terbaik
         best_validating_mse = validating_mse
 
         # Simpan Model saat ini Ke State
@@ -205,9 +205,9 @@ class Trainer:
         print(f"Training MSE    : {training_loss['MSE']:.6f}")
         print(f"Training MAE    : {training_loss['MAE']:.6f}")
         print(f"Training RMSE   : {training_loss['RMSE']:.6f}")
-        print(f"Validation MSE  : {validating_loss['MSE']:.6f}")
-        print(f"Validation MAE  : {validating_loss['MAE']:.6f}")
-        print(f"Validation RMSE : {validating_loss['RMSE']:.6f}")
+        print(f"Validating MSE  : {validating_loss['MSE']:.6f}")
+        print(f"Validating MAE  : {validating_loss['MAE']:.6f}")
+        print(f"Validating RMSE : {validating_loss['RMSE']:.6f}")
         print(f"Patience        : {patience_counter}/{patience}")
         print()
 
@@ -219,7 +219,7 @@ class Trainer:
         print("=== EARLY STOPPING ===")
         print(f"Epoch               : {last_epoch}")
         print(f"Best Epoch          : {best_epoch}")
-        print(f"Best Validation MSE : {best_validating_mse:.6f}")
+        print(f"Best Validating MSE : {best_validating_mse:.6f}")
         print()
 
         # Hentikan Epoch

@@ -140,7 +140,7 @@ class Preprocessor:
     # Fit Gabungan Input ke Normalizer
     self.input_scaler.fit(input_values)
 
-    # Fit Gabungan Taget ke Normalizer
+    # Fit Gabungan Target ke Normalizer
     self.target_scaler.fit(target_values)
 
   # PREPROCESS — Menjalankan seluruh Proses Preprocessor

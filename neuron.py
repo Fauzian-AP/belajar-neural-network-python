@@ -13,6 +13,7 @@ from custom_types import (
   PositiveFloat,
   PositiveInt,
   ActivationType,
+  NeuronCache,
 )
 
 class Neuron:
@@ -24,7 +25,7 @@ class Neuron:
     learning_rate: PositiveFloat,
     activation: ActivationType = ActivationType.NONE,
   ) -> None:
-    # Menentukan jumlah Inputan yg dpt diterima sebuah Neuron
+    # Menentukan jumlah Inputan yg dpt diproses oleh Neuron
     self.input_size: int = input_size
 
     # Menentukan seberapa besar perubahan Weight & Bias tiap update
@@ -51,8 +52,8 @@ class Neuron:
     # Menunjukkan seberapa sensitif Loss terhadap Bias
     self.gradient_bias: float = 0.0
 
-    # Nilai terakhir sebelum Activation
-    self.last_pre_activation: float = 0.0
+    # Menyimpan Nilai² yg dibutuhkan
+    self.cache: NeuronCache | None = None
 
   # FORWARD — Proses Prediksi
   def forward(self, inputs: SequenceFloat) -> float:
@@ -61,10 +62,13 @@ class Neuron:
       raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
 
     # Proses dgn Rumus: y = f(z) = f( ∑(xₙ × wₙ) + b )
-    pre_activation:float = sum(x * w for x, w in zip(inputs, self.weights)) + self.bias
+    pre_activation = sum(x * w for x, w in zip(inputs, self.weights)) + self.bias
 
-    # Simpan Nilai Pre-Activation saat ini
-    self.last_pre_activation = pre_activation
+    # Simpan nilai² yg diperlukan ke Cache
+    self.cache = {
+      "inputs": list(inputs),
+      "pre_activation": pre_activation,
+    }
 
     # Implementasi Aktivasi
     if self.activation == ActivationType.RELU:
@@ -73,14 +77,18 @@ class Neuron:
     return pre_activation
 
   # BACKWARD — Proses Cek Kesalahan
-  def backward(self, inputs: SequenceFloat, gradient_output: float) -> ListFloat:
-    # Validasi Inputs
-    if len(inputs) != self.input_size:
-      raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
+  def backward(self, gradient_output: float) -> ListFloat:
+    # Validasi
+    if self.cache is None:
+      raise ValueError("Backward tdk dpt dilakukan sebelum Forward.")
+
+    # Ambil data dari Cache
+    inputs = self.cache["inputs"]
+    pre_activation = self.cache["pre_activation"]
 
     # Implementasi Aktivasi Gradient
     if self.activation == ActivationType.RELU:
-      gradient_pre_activation = gradient_output * ReLU_gradient(self.last_pre_activation)
+      gradient_pre_activation = gradient_output * ReLU_gradient(pre_activation)
     else:
       gradient_pre_activation = gradient_output
 
@@ -92,7 +100,10 @@ class Neuron:
     self.gradient_bias += gradient_pre_activation
 
     # Gradient Input (dikirim ke Layer sebelumnya)
-    gradient_input = [gradient_pre_activation * w for w in self.weights]
+    gradient_input = [
+      gradient_pre_activation * w
+      for w in self.weights
+    ]
 
     return gradient_input
 

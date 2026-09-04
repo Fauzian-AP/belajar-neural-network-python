@@ -21,7 +21,6 @@ class Model:
         input_size = 3,
         neuron_count = 4,
         learning_rate = learning_rate,
-        activation = ActivationType.NONE,
       ),
     
       # Hidden Layer
@@ -37,7 +36,6 @@ class Model:
         input_size = 4,
         neuron_count = 2,
         learning_rate = learning_rate,
-        activation = ActivationType.NONE,
       ),
     ]
 
@@ -45,39 +43,24 @@ class Model:
   def forward(self, inputs: SequenceFloat) -> ListFloat:
     output = inputs
 
-    # Forward semua Layer sehingga Outputnya di Passing terus
+    # Jalankan Method Forward tiap Layer sehingga Outputnya di Passing terus
     for layer in self.layers:
       output = layer.forward(output)
 
     return output
 
   # BACKWARD — Proses Cek kesalahan tiap Layer (Mundur)
-  def backward(
-    self,
-    inputs: SequenceFloat,
-    gradient_outputs: SequenceFloat, 
-  ) -> ListFloat:
-    # Simpan Output setiap Layer
-    layer_outputs: list[ListFloat] = []
-
-    output = inputs
-
-    # Forward tiap Layer untuk mendptkan Outputnya
-    for layer in self.layers:
-      output = layer.forward(output)
-
-      layer_outputs.append(output)
-
+  def backward(self, gradient_outputs: SequenceFloat) -> ListFloat:
+    # Gradient awal
     gradient = gradient_outputs
     
-    # Backward dari Layer terakhir ke awal untuk mendptkan Gradientnya
+    # Jalankan Method Backward dari Layer terakhir ke awal
     for i in range(len(self.layers) - 1, -1, -1):
+      # Simpan Layer tiap index
       layer = self.layers[i]
 
-      # Tentukan Mana yg Input Layer
-      layer_input = inputs if (i == 0) else layer_outputs[i - 1]
-
-      gradient = layer.backward(layer_input, gradient)
+      # Kirim Gradient ke Layer sebelumnya
+      gradient = layer.backward(gradient)
 
     return gradient
 

@@ -21,16 +21,18 @@ class Layer:
     learning_rate: PositiveFloat,
     activation: ActivationType = ActivationType.NONE,
   ) -> None:
-    # Menentukan jumlah Inputan yg dpt diterima sebuah Neuron
+    # Menentukan jumlah Inputan yg dpt diproses oleh tiap Neuron
     self.input_size: int = input_size
 
     # Menentukan jumlah Neuron yg digunakan
     self.neuron_count: int = neuron_count
 
-    # Menjalankan Neuron²
+    # Simpan Neuron²
     self.neurons: list[Neuron] = [
+      # Buat Neuron
       Neuron(input_size, learning_rate, activation)
 
+      # Jalankan berdasarkan neuron_count 
       for _ in range(neuron_count)
     ]
 
@@ -38,9 +40,9 @@ class Layer:
   def forward(self, inputs: SequenceFloat) -> ListFloat:
     # Validasi Inputs
     if len(inputs) != self.input_size:
-      raise ValueError(f"Ukuran inputs ({len(inputs)}) tidak sesuai dengan input_size ({self.input_size}).")
+      raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
 
-    # Jalankan Method Forward tiap Neuron
+    # Jalankan Method Forward pd tiap Neuron
     outputs = [
       neuron.forward(inputs)
       for neuron in self.neurons
@@ -49,24 +51,18 @@ class Layer:
     return outputs
 
   # BACKWARD — Proses Cek Kesalahan tiap Neuron
-  def backward(
-    self,
-    inputs: SequenceFloat,
-    gradient_outputs: SequenceFloat
-  ) -> ListFloat:
+  def backward(self, gradient_outputs: SequenceFloat) -> ListFloat:
     # Validasi
-    if len(inputs) != self.input_size:
-      raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
-
     if len(gradient_outputs) != self.neuron_count:
       raise ValueError(f"Panjang gradient_outputs ({len(gradient_outputs)}) tdk sesuai dgn neuron_count ({self.neuron_count}).")
 
     # Gradient untuk input Layer
     gradient_input = [0.0] * self.input_size
 
+    # Jalankan Method Backward pd tiap Neuron
     for neuron, gradient_output in zip(self.neurons, gradient_outputs):
       # Gradient yg dikirim Neuron
-      neuron_gradient_input = neuron.backward(inputs, gradient_output)
+      neuron_gradient_input = neuron.backward(gradient_output)
 
       # Gabungkan Gradient dari semua Neuron
       for i, gradient in enumerate(neuron_gradient_input):

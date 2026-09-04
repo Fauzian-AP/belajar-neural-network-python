@@ -21,11 +21,16 @@ Dataset: TypeAlias = list[tuple[ListFloat, ListFloat]]
 ListDataset: TypeAlias = list[Dataset]
 DictDataset: TypeAlias = dict[str, Dataset]
 
-# Struktur Metrics
+# Type Metrics
 class Metrics(TypedDict):
   MSE: float
   MAE: float
   RMSE: float
+
+# Type Cache Neuron
+class NeuronCache(TypedDict):
+  inputs: ListFloat
+  pre_activation: float
 
 # Pydantic Validated
 PositiveInt = Annotated[int, Field(gt=0, description="Angka bulat harus > 0")]
@@ -35,8 +40,3 @@ PositiveFloat = Annotated[float, Field(gt=0, description="Angka desimal harus > 
 class ActivationType(str, Enum):
   NONE = "none"
   RELU = "ReLU"
-
-# Enum Scale Data
-class ScaleType(str, Enum):
-  ORIGINAL = "original"
-  NORMALIZE = "normalize"
