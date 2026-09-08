@@ -26,7 +26,7 @@ class MAE:
     # Validasi
     MAE._validate_inputs(targets, predictions)
   
-    # Rumus: MAE = (1/n) × Σ|y - ŷ|
+    """ MAE = (1/n) × Σ|y - ŷ| """
     total_error = sum(
       abs(target - prediction)
       for target, prediction in zip(targets, predictions)
@@ -42,7 +42,7 @@ class RMSE:
   @staticmethod
   @validate_call
   def calculate(targets: SequenceFloat, predictions: SequenceFloat) -> float:
-    # Rumus: RMSE = √MSE
+    """ RMSE = √MSE """
     mse = MSE.calculate(targets, predictions)
 
     return math.sqrt(mse)

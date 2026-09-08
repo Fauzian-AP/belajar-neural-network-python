@@ -9,14 +9,14 @@ from custom_types import (
   PositiveInt,
   Dataset,
   ListDataset,
-  DictDataset,
+  DatasetType,
 )
 
 class Batch:
   # CONSTRUCTOR — Initialization
   def __init__(self, seed: int | None = None) -> None:
-    # Simpan seed untuk Reproducibility
-    self.seed = seed
+    # Simpan Random Generator untuk Reproducibility
+    self.random = random.Random(seed)
 
   # SPLIT DATASET — Membagi Dataset menjadi Sesi² seperti Training, Validation, dan Testing
   @validate_call
@@ -26,7 +26,7 @@ class Batch:
     training_ratio: PositiveFloat,
     validating_ratio: PositiveFloat,
     testing_ratio: PositiveFloat,
-  ) -> DictDataset:
+  ) -> DatasetType:
     # Hitung total Rasio
     total_ratio = (training_ratio + validating_ratio + testing_ratio)
 
@@ -37,11 +37,8 @@ class Batch:
     # Salin Dataset agar yg asli tdk berubah
     shuffle_dataset = list(dataset)
 
-    # Tetapkan Random Generator untuk Reproducibility
-    scope = random.Random(self.seed)
-
     # Acak data agar mengurangi ketergantungan Model pd pola urutan
-    scope.shuffle(shuffle_dataset)
+    self.random.shuffle(shuffle_dataset)
 
     # Hitung total data
     dataset_size = len(shuffle_dataset)
@@ -74,11 +71,8 @@ class Batch:
     # Salin Dataset agar yg asli tdk berubah
     shuffle_dataset = list(dataset)
 
-    # Tetapkan Random Generator untuk Reproducibility
-    scope = random.Random(self.seed)
-
     # Acak data agar mengurangi ketergantungan Model pd pola urutan
-    scope.shuffle(shuffle_dataset)
+    self.random.shuffle(shuffle_dataset)
 
     # Siapkan Wadah Batch
     batches: ListDataset = []

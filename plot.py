@@ -1,7 +1,14 @@
-# Menampilkan hasil Training / Validation Model dalam bentuk Grafik
+# Menampilkan hasil Pelatihan² Model dalam bentuk Grafik
 
 import matplotlib.pyplot as plt   # Library Matplotlib
 from pathlib import Path
+from pydantic import validate_call
+
+from custom_types import (
+  FitHistory,
+  ScaleType,
+  EvaluatingType,
+)
 
 # Buat path spesifik untuk menyimpan file² image
 PLOT_DIR = Path(__file__).parent / "plots"
@@ -9,149 +16,107 @@ PLOT_DIR = Path(__file__).parent / "plots"
 # Buat otomatis folder 'plots' jika tdk ada
 PLOT_DIR.mkdir(exist_ok=True)
 
-def plot_history(
-  epoch,
-  training_data,
-  validation_data
-):
-  # AMBIL DATA² TRAINING METRICS
 
-  training_mse = [
-    metrics["mse"]
-    for metrics in training_data
-  ]
+# PLOT TRAINING — Grafik Proses Belajar
 
-  training_mae = [
-    metrics["mae"]
-    for metrics in training_data
-  ]
+@validate_call
+def plot_training(history: FitHistory, scale: ScaleType) -> None:
+  # Ambil Epochs
+  epochs = history["epochs"]
 
-  training_rmse = [
-    metrics["rmse"]
-    for metrics in training_data
-  ]
+  # Ambil metrics
+  training_metrics = history["training_metrics"]
+  validating_metrics = history["validating_metrics"]
 
-  # AMBIL DATA² VALIDATION METRICS
+  # Ambil nama² Metrics
+  metric_names = list(training_metrics.keys())
 
-  validation_mse = [
-    metrics["mse"]
-    for metrics in validation_data
-  ]
+  # Jenis Scale Data yg dipakai
+  scale_name = scale.value
 
-  validation_mae = [
-    metrics["mae"]
-    for metrics in validation_data
-  ]
+  # Buat Plot pd tiap jenis Metrics
+  for metric_name in metric_names:
+    # Ambil data² Training
+    training_values = (training_metrics[metric_name])
+    
+    # Ambil data² Validating
+    validating_values = (validating_metrics[metric_name])
+    
+    plt.figure(figsize=(10, 6))
+    
+    # Training
+    plt.plot(
+      epochs,
+      training_values,
+      color="purple",
+      label=f"Training {metric_name}"
+    )
+    
+    # Validation
+    plt.plot(
+      epochs,
+      validating_values,
+      color="darkblue",
+      label=f"Validating {metric_name}"
+    )
+    
+    plt.xlabel("Epoch")
+    plt.ylabel(metric_name)
+    plt.title(f"Training vs Validation — {metric_name} ({scale_name})")
+    
+    plt.legend()
+    plt.grid()
+    
+    # Save & Replace File Image
+    plt.savefig(
+      PLOT_DIR / f"training_{metric_name.lower()}_{scale_name}.png",
+      dpi=150,
+      bbox_inches="tight",
+    )
+    
+    plt.close()
 
-  validation_rmse = [
-    metrics["rmse"]
-    for metrics in validation_data
-  ]
 
-  # PLOT MSE
+# PLOT EVALUATING — Grafik Perbandingan Hasil Akhir
+
+@validate_call
+def plot_evaluating(evaluating_metrics: EvaluatingType, scale: ScaleType) -> None:
+  # Jenis Scale Data yg dipakai
+  scale_name = scale.value
+
+  # Ambil nama² Dataset
+  dataset_names = list(evaluating_metrics.keys())
+
+  # Ambil isi data Evaluating yg pertama
+  first_metrics = next(iter(evaluating_metrics.values()))
+
+  # Ambil nama² Metrics
+  metric_names = list(first_metrics.keys())
+
+  # Buat Plot pd tiap jenis Metrics
+  for metric_name in metric_names:
+    # Ambil nilai² tiap Dataset
+    values = [
+      evaluating_metrics[name][metric_name]
+      for name in dataset_names
+    ]
   
-  plt.figure(figsize=(10, 6))
-
-  # Training
-  plt.plot(
-    epoch,
-    training_mse,
-    color="purple",
-    label="Training MSE"
-  )
-
-  # Validation
-  plt.plot(
-    epoch,
-    validation_mse,
-    color="darkblue",
-    label="Validation MSE"
-  )
-
-  plt.xlabel("Epoch")
-  plt.ylabel("MSE")
-  plt.title("Training vs Validation — MSE")
-
-  plt.legend()
-  plt.grid()
-
-  # Save & Replace File Image
-  plt.savefig(
-    PLOT_DIR / "training_mse.png",
-    dpi=150,
-    bbox_inches="tight"
-  )
-
-  plt.close()
-
-  # PLOT MAE
-
-  plt.figure(figsize=(10, 6))
-
-  # Training
-  plt.plot(
-    epoch,
-    training_mae,
-    color="purple",
-    label="Training MAE"
-  )
-
-  # Validation
-  plt.plot(
-    epoch,
-    validation_mae,
-    color="darkblue",
-    label="Validation MAE"
-  )
-
-  plt.xlabel("Epoch")
-  plt.ylabel("MAE")
-  plt.title("Training vs Validation — MAE")
-
-  plt.legend()
-  plt.grid()
-
-  # Save & Replace File Image
-  plt.savefig(
-    PLOT_DIR / "training_mae.png",
-    dpi=150,
-    bbox_inches="tight"
-  )
-
-  plt.close()
-
-  # PLOT RMSE
-
-  plt.figure(figsize=(10, 6))
-
-  # Training
-  plt.plot(
-    epoch,
-    training_rmse,
-    color="purple",
-    label="Training RMSE"
-  )
-
-  # Validation
-  plt.plot(
-    epoch,
-    validation_rmse,
-    color="darkblue",
-    label="Validation RMSE"
-  )
-
-  plt.xlabel("Epoch")
-  plt.ylabel("RMSE")
-  plt.title("Training vs Validation — RMSE")
-
-  plt.legend()
-  plt.grid()
-
-  # Save & Replace File Image
-  plt.savefig(
-    PLOT_DIR / "training_rmse.png",
-    dpi=150,
-    bbox_inches="tight"
-  )
-
-  plt.close()
+    plt.figure(figsize=(10, 6))
+  
+    plt.bar(dataset_names, values)
+  
+    plt.xlabel("Dataset")
+    plt.ylabel(metric_name)
+  
+    plt.title(f"Final Evaluating — {metric_name} ({scale_name})")
+  
+    plt.grid(axis="y")
+  
+    # Save & Replace File Image
+    plt.savefig(
+      PLOT_DIR / f"evaluating_{metric_name.lower()}_{scale_name}.png",
+      dpi=150,
+      bbox_inches="tight",
+    )
+  
+    plt.close()

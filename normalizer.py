@@ -41,7 +41,7 @@ class Normalizer:
     # Validasi
     self._validate_fitted()
 
-    # Rumus: x' = (x - x_min) / (x_max - x_min)
+    """ x' = (x - x_min) / (x_max - x_min) """
     return (value - self.minimum) / (self.maximum - self.minimum)
 
   # DENORMALIZE — Mengembalikan sebuah nilai ke skala Original
@@ -49,5 +49,5 @@ class Normalizer:
     # Validasi
     self._validate_fitted()
 
-    # Rumus: x = x' × (x_max - x_min) + x_min
+    """ x = x' × (x_max - x_min) + x_min """
     return value * (self.maximum - self.minimum) + self.minimum

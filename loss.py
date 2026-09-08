@@ -24,7 +24,7 @@ class MSE:
     # Validasi
     MSE._validate_inputs(targets, predictions)
   
-    # Rumus: MSE = (1/n) × Σ(y - ŷ)²
+    """ MSE = (1/n) × Σ(y - ŷ)² """
     total = sum(
       (target - prediction) ** 2
       for target, prediction in zip(targets, predictions)
@@ -39,7 +39,7 @@ class MSE:
     # Validasi
     MSE._validate_inputs(targets, predictions)
   
-    # Rumus: ∂MSE/∂ŷ = (2/n) × (ŷ - y)
+    """ ∂MSE/∂ŷ = (2/n) × (ŷ - y) """
     return [
       (2 * (prediction - target)) / len(targets)
       for target, prediction in zip(targets, predictions)

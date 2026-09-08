@@ -5,7 +5,7 @@ from custom_types import (
   ListFloat,
   SequenceFloat,
   Dataset,
-  DictDataset,
+  DatasetType,
 )
 
 class Preprocessor:
@@ -58,9 +58,9 @@ class Preprocessor:
     return normalized_dataset
   
   # NORMALIZE DATASETS — Normalisasi byk Dataset
-  def normalize_datasets(self, datasets: DictDataset) -> DictDataset:
+  def normalize_datasets(self, datasets: DatasetType) -> DatasetType:
     # Siapkan Wadah Dataset
-    normalized_datasets: DictDataset = {}
+    normalized_datasets: DatasetType = {}
   
     # Proses tiap Dataset
     for name, dataset in datasets.items():
@@ -110,9 +110,9 @@ class Preprocessor:
     return denormalized_dataset
   
   # DENORMALIZE DATASETS — Mengembalikan byk Dataset ke Skala Asli
-  def denormalize_datasets(self, datasets: DictDataset) -> DictDataset:
+  def denormalize_datasets(self, datasets: DatasetType) -> DatasetType:
     # Siapkan Wadah Dataset
-    denormalized_datasets: DictDataset = {}
+    denormalized_datasets: DatasetType = {}
   
     # Proses tiap Dataset
     for name, dataset in datasets.items():
@@ -144,7 +144,7 @@ class Preprocessor:
     self.target_scaler.fit(target_values)
 
   # PREPROCESS — Menjalankan seluruh Proses Preprocessor
-  def preprocess(self, datasets: DictDataset) -> DictDataset:
+  def preprocess(self, datasets: DatasetType) -> DatasetType:
     # Fit Normalizer
     self.fit_dataset(datasets["training"])
 

@@ -13,27 +13,9 @@ from custom_types import (
   PositiveInt,
   Dataset,
   Metrics,
+  FitHistory,
+  FitResult,
 )
-
-# TYPE CHECKER
-
-class MetricsHistory(TypedDict):
-  MSE: list[float]
-  MAE: list[float]
-  RMSE: list[float]
-  
-class History(TypedDict):
-  epochs: list[int]
-  training_metrics: MetricsHistory
-  validating_metrics: MetricsHistory
-
-class FitTestResult(TypedDict):
-  history: History
-  best_epoch: int
-  last_epoch: int
-  best_validating_mse: float
-
-# CLASS TRAINER
 
 class Trainer:
   # CONSTRUCTOR — Initialization
@@ -47,6 +29,10 @@ class Trainer:
   # TRAINING — Melatih Model Selama 1 Epoch
   @validate_call
   def training(self, dataset: Dataset, batch_size: PositiveInt) -> Metrics:
+    # Validasi
+    if not dataset:
+      raise ValueError("Dataset yg digunakan tdk boleh kosong.")
+
     # Buat Mini-Batch
     batches = self.batch.create_batches(dataset, batch_size)
 
@@ -78,6 +64,11 @@ class Trainer:
   # EVALUATING — Mengukur Performa Model pd Dataset
   @validate_call
   def evaluating(self, dataset: Dataset) -> Metrics:
+    # Validasi
+    if not dataset:
+      raise ValueError("Dataset yg digunakan tdk boleh kosong.")
+
+    # Total Metrics Initialization
     total_mse = total_mae = total_rmse = 0.0
 
     # Total data dari Dataset
@@ -122,9 +113,9 @@ class Trainer:
     epochs: PositiveInt,
     batch_size: PositiveInt,
     patience: PositiveInt = 10,
-  ) -> FitTestResult:
+  ) -> FitResult:
     # Histroy Hasil
-    history: History = {
+    history: FitHistory = {
       # List nomor Epoch
       "epochs": [],
 
@@ -202,12 +193,12 @@ class Trainer:
       # Log Epoch per-100 Epoch
       if epoch % 100 == 0:
         print(f"=== Epoch {epoch} ===")
-        print(f"Training MSE    : {training_loss['MSE']:.6f}")
-        print(f"Training MAE    : {training_loss['MAE']:.6f}")
-        print(f"Training RMSE   : {training_loss['RMSE']:.6f}")
-        print(f"Validating MSE  : {validating_loss['MSE']:.6f}")
-        print(f"Validating MAE  : {validating_loss['MAE']:.6f}")
-        print(f"Validating RMSE : {validating_loss['RMSE']:.6f}")
+        print(f"Training MSE    : {training_loss['MSE']:.18f}")
+        print(f"Training MAE    : {training_loss['MAE']:.18f}")
+        print(f"Training RMSE   : {training_loss['RMSE']:.18f}")
+        print(f"Validating MSE  : {validating_loss['MSE']:.18f}")
+        print(f"Validating MAE  : {validating_loss['MAE']:.18f}")
+        print(f"Validating RMSE : {validating_loss['RMSE']:.18f}")
         print(f"Patience        : {patience_counter}/{patience}")
         print()
 
@@ -219,7 +210,7 @@ class Trainer:
         print("=== EARLY STOPPING ===")
         print(f"Epoch               : {last_epoch}")
         print(f"Best Epoch          : {best_epoch}")
-        print(f"Best Validating MSE : {best_validating_mse:.6f}")
+        print(f"Best Validating MSE : {best_validating_mse:.18f}")
         print()
 
         # Hentikan Epoch

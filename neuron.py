@@ -13,7 +13,7 @@ from custom_types import (
   PositiveFloat,
   PositiveInt,
   ActivationType,
-  NeuronCache,
+  CacheNeuron,
 )
 
 class Neuron:
@@ -53,7 +53,7 @@ class Neuron:
     self.gradient_bias: float = 0.0
 
     # Menyimpan Nilai² yg dibutuhkan
-    self.cache: NeuronCache | None = None
+    self.cache: CacheNeuron | None = None
 
   # FORWARD — Proses Prediksi
   def forward(self, inputs: SequenceFloat) -> float:
@@ -61,7 +61,7 @@ class Neuron:
     if len(inputs) != self.input_size:
       raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
 
-    # Proses dgn Rumus: y = f(z) = f( ∑(xₙ × wₙ) + b )
+    """ y = f(z) = f( ∑(xₙ × wₙ) + b ) """
     pre_activation = sum(x * w for x, w in zip(inputs, self.weights)) + self.bias
 
     # Simpan nilai² yg diperlukan ke Cache
