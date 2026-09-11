@@ -67,6 +67,7 @@ PositiveFloat = Annotated[float, Field(gt=0, description="Angka desimal hrs > 0"
 class ActivationType(str, Enum):
   NONE = "none"
   RELU = "ReLU"
+  LEAKY_RELU = "LeakyReLU"
 
 # Enum Jenis² Bentuk Data
 class ScaleType(str, Enum):

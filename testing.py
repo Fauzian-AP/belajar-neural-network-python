@@ -1,91 +1,51 @@
-import copy
-from model import Model
-from trainer import Trainer
-from batch import Batch
-from preprocessing import Preprocessor
-from custom_types import PositiveInt, Dataset, Metrics
-from pydantic import validate_call
+from neuron import Neuron
+from custom_types import ActivationType
 
-# ============================================================
-# TEST MODEL + PREPROCESSOR + DENORMALIZATION
-# ============================================================
 
-preprocessor = Preprocessor()
+# ===============================================================
+# TEST LEAKY RELU PADA NEURON
+# ===============================================================
 
-training_data = [
-  ([10.0, 20.0, 30.0], [100.0, 200.0]),
-  ([20.0, 30.0, 40.0], [200.0, 300.0]),
-  ([30.0, 40.0, 50.0], [300.0, 400.0]),
-]
-
-preprocessor.fit_dataset(training_data)
-
-model = Model(learning_rate=0.001,)
-
-# ------------------------------------------------------------
-# ORIGINAL INPUT
-# ------------------------------------------------------------
-
-original_inputs = [
-  20.0,
-  30.0,
-  40.0,
-]
-
-# ------------------------------------------------------------
-# NORMALIZE INPUT
-# ------------------------------------------------------------
-
-normalized_inputs = (
-  preprocessor.normalize_inputs(original_inputs )
+neuron = Neuron(
+  input_size=1,
+  learning_rate=0.01,
+  activation=ActivationType.LEAKY_RELU,
 )
 
-
-# ------------------------------------------------------------
-# MODEL FORWARD
-# ------------------------------------------------------------
-
-normalized_predictions = model.forward(
-  normalized_inputs,
-)
+# Paksa nilai agar pre_activation = -1
+neuron.weights = [-1.0]
+neuron.bias = 0.0
 
 
-# ------------------------------------------------------------
-# DENORMALIZE PREDICTION
-# ------------------------------------------------------------
+# ===============================================================
+# FORWARD
+# ===============================================================
 
-original_predictions = (
-  preprocessor.denormalize_targets(
-    normalized_predictions,
-  )
-)
-
-
-# ------------------------------------------------------------
-# VERIFY
-# ------------------------------------------------------------
-
-assert len(original_predictions) == 2
-
-assert all(
-  isinstance(
-    prediction,
-    float,
-  )
-  for prediction in original_predictions
+output = neuron.forward(
+  [1.0],
 )
 
 print(
-  "Normalized Prediction :",
-  normalized_predictions,
+  f"Output          : {output}"
+)
+
+
+# ===============================================================
+# BACKWARD
+# ===============================================================
+
+gradient_input = neuron.backward(
+  1.0,
 )
 
 print(
-  "Original Prediction   :",
-  original_predictions,
+  f"Gradient Input  : {gradient_input}"
 )
 
 print(
-  "✅ TEST MODEL + PREPROCESSOR "
-  "DENORMALIZATION — PASS"
+  f"Gradient Weight : {neuron.gradient_weights}"
+)
+
+print(
+  f"Gradient Bias   : {neuron.gradient_bias}"
 )

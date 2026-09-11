@@ -191,7 +191,7 @@ class Trainer:
         patience_counter += 1
 
       # Log Epoch per-100 Epoch
-      if epoch % 100 == 0:
+      if epoch % 5 == 0:
         print(f"=== Epoch {epoch} ===")
         print(f"Training MSE    : {training_loss['MSE']:.18f}")
         print(f"Training MAE    : {training_loss['MAE']:.18f}")

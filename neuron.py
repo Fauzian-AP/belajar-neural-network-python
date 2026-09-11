@@ -6,7 +6,13 @@ import random
 import math
 from pydantic import validate_call
 
-from activation import ReLU, ReLU_gradient
+from activation import (
+  ReLU,
+  ReLU_Gradient,
+  Leaky_ReLU,
+  Leaky_ReLU_Gradient,
+)
+
 from custom_types import (
   ListFloat,
   SequenceFloat,
@@ -71,10 +77,18 @@ class Neuron:
     }
 
     # Implementasi Aktivasi
-    if self.activation == ActivationType.RELU:
-      return ReLU(pre_activation)
+    match self.activation:
+      # ReLU
+      case ActivationType.RELU:
+        return ReLU(pre_activation)
 
-    return pre_activation
+      # Leaky ReLU
+      case ActivationType.LEAKY_RELU:
+        return Leaky_ReLU(pre_activation)
+
+      # No Activation
+      case ActivationType.NONE:
+        return pre_activation
 
   # BACKWARD — Proses Cek Kesalahan
   def backward(self, gradient_output: float) -> ListFloat:
@@ -87,10 +101,22 @@ class Neuron:
     pre_activation = self.cache["pre_activation"]
 
     # Implementasi Aktivasi Gradient
-    if self.activation == ActivationType.RELU:
-      gradient_pre_activation = gradient_output * ReLU_gradient(pre_activation)
-    else:
-      gradient_pre_activation = gradient_output
+    match self.activation:
+      # ReLU
+      case ActivationType.RELU:
+        gradient_pre_activation = (
+          gradient_output * ReLU_Gradient(pre_activation)
+        )
+
+      # Leaky ReLU
+      case ActivationType.LEAKY_RELU:
+        gradient_pre_activation = (
+          gradient_output * Leaky_ReLU_Gradient(pre_activation)
+        )
+
+      # No Activation
+      case ActivationType.NONE:
+        gradient_pre_activation = gradient_output
 
     # Akumulasi Gradient Weight
     for i, x in enumerate(inputs):

@@ -2,7 +2,7 @@
 
 from pydantic import validate_call
 
-from layer import Layer   # Import Layer
+from layer import Layer
 from custom_types import (
   ListFloat,
   SequenceFloat,
@@ -14,13 +14,18 @@ from custom_types import (
 class Model:
   # CONSTRUCTOR
   @validate_call
-  def __init__(self, learning_rate: PositiveFloat) -> None:
+  def __init__(
+    self,
+    learning_rate: PositiveFloat,
+    activation: ActivationType = ActivationType.RELU
+  ) -> None:
     self.layers: list[Layer] = [
       # Input Layer
       Layer(
         input_size = 3,
         neuron_count = 4,
         learning_rate = learning_rate,
+        activation = activation,
       ),
     
       # Hidden Layer
@@ -28,7 +33,7 @@ class Model:
         input_size = 4,
         neuron_count = 4,
         learning_rate = learning_rate,
-        activation = ActivationType.NONE,
+        activation = activation,
       ),
     
       # Output Layer
@@ -36,6 +41,7 @@ class Model:
         input_size = 4,
         neuron_count = 2,
         learning_rate = learning_rate,
+        activation = ActivationType.NONE,   # Hrs None untuk Output
       ),
     ]
 

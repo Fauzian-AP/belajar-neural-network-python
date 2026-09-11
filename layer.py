@@ -27,6 +27,9 @@ class Layer:
     # Menentukan jumlah Neuron yg digunakan
     self.neuron_count: int = neuron_count
 
+    # Jenis Activation yg digunakan
+    self.activation: ActivationType = activation
+
     # Simpan Neuron²
     self.neurons: list[Neuron] = [
       # Buat Neuron
