@@ -1,15 +1,14 @@
 # Bagian untuk melakukan Diagnostic pada Neural Network
 
-import math
 import copy
 import random
 
 from batch import Batch
-from model import Model
-from trainer import Trainer
-from loss import MSE
-from metrics import calculate_metrics
-from custom_types import (
+from neural_network.core.model import Model
+from neural_network.training.trainer import Trainer
+from neural_network.evaluating.loss_functions import MSE
+from neural_network.evaluating.metric_evaluation import calculate_metrics
+from neural_network.utils.custom_types import (
   Dataset,
   ActivationType,
 )

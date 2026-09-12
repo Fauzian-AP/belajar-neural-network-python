@@ -2,16 +2,15 @@
 
 from enum import Enum
 from pydantic import Field
-from typing import (
+from typing_extensions import (
   Annotated,
   Sequence,
-  Union, 
   TypedDict, 
   TypeAlias,
 )
 
-# Type Union
-Numeric: TypeAlias = Union[int, float]
+# Aliases Numeric
+Numeric: TypeAlias = int | float
 
 # Aliases Number
 ListInt: TypeAlias = list[int]
@@ -67,7 +66,7 @@ PositiveFloat = Annotated[float, Field(gt=0, description="Angka desimal hrs > 0"
 class ActivationType(str, Enum):
   NONE = "none"
   RELU = "ReLU"
-  LEAKY_RELU = "LeakyReLU"
+  LEAKY_RELU = "Leaky_ReLU"
 
 # Enum Jenis² Bentuk Data
 class ScaleType(str, Enum):

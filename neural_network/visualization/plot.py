@@ -1,20 +1,24 @@
 # Menampilkan hasil Pelatihan² Model dalam bentuk Grafik
 
-import matplotlib.pyplot as plt   # Library Matplotlib
 from pathlib import Path
+from typing_extensions import Final
+import matplotlib.pyplot as plt   # Library Matplotlib
 from pydantic import validate_call
 
-from custom_types import (
+from neural_network.utils.custom_types import (
   FitHistory,
   ScaleType,
   EvaluatingType,
 )
 
+# Path untuk Root Project
+ROOT_PROJECT: Final = Path(__file__).resolve().parents[2]
+
 # Buat path spesifik untuk menyimpan file² image
-PLOT_DIR = Path(__file__).parent / "plots"
+PLOTS_DIR: Final = ROOT_PROJECT / "plots"
 
 # Buat otomatis folder 'plots' jika tdk ada
-PLOT_DIR.mkdir(exist_ok=True)
+PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # PLOT TRAINING — Grafik Proses Belajar
@@ -69,7 +73,7 @@ def plot_training(history: FitHistory, scale: ScaleType) -> None:
     
     # Save & Replace File Image
     plt.savefig(
-      PLOT_DIR / f"training_{metric_name.lower()}_{scale_name}.png",
+      PLOTS_DIR / f"training_{metric_name.lower()}_{scale_name}.png",
       dpi=150,
       bbox_inches="tight",
     )
@@ -114,7 +118,7 @@ def plot_evaluating(evaluating_metrics: EvaluatingType, scale: ScaleType) -> Non
   
     # Save & Replace File Image
     plt.savefig(
-      PLOT_DIR / f"evaluating_{metric_name.lower()}_{scale_name}.png",
+      PLOTS_DIR / f"evaluating_{metric_name.lower()}_{scale_name}.png",
       dpi=150,
       bbox_inches="tight",
     )

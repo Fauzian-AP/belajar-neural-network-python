@@ -1,15 +1,14 @@
 # Main Pipeline Neural Network
 
 import random
-from typing import Final
+from typing_extensions import Final
 
-from preprocessing import Preprocessor
-from batch import Batch
-from model import Model
-from trainer import Trainer
-from plot import plot_training, plot_evaluating
-from custom_types import ScaleType, EvaluatingType, ActivationType
-from dataset import (
+from neural_network.core import Model
+from neural_network.data import Preprocessor
+from neural_network.training import Batch, Trainer
+from neural_network.visualization import plot_training, plot_evaluating
+from neural_network.utils.custom_types import ScaleType, EvaluatingType, ActivationType
+from neural_network.data.dataset import (
   training_data,
   validation_data,
   test_data,
@@ -22,13 +21,21 @@ SEED: Final = 42
 
 LEARNING_RATE: Final = 0.113
 
+EPOCHS: Final = 360
+
+BATCH_SIZE: Final = 5
+
+PATIENCE: Final = 5
+
+ARCHITECTURE: Final = (3, 4, 4, 2)
+
 # REPRODUCIBILITY
 
 random.seed(SEED)
 
-# DATASET
+# DATASET INFO
 
-print("=== DATASET ===")
+print("=== DATASET INFO ===")
 print(f"Training       : {len(training_data)}")
 print(f"Validation     : {len(validation_data)}")
 print(f"Testing        : {len(test_data)}")
@@ -64,8 +71,9 @@ print()
 # MODEL
 
 model = Model(
-  learning_rate = LEARNING_RATE,
-  activation = ActivationType.LEAKY_RELU,
+  learning_rate=LEARNING_RATE,
+  architecture=ARCHITECTURE,
+  activation=ActivationType.LEAKY_RELU,
 )
 
 # BATCH
@@ -83,9 +91,9 @@ print("=== FIT TRAINING ===")
 fit_result = trainer.fit(
   training_data=normalized_datasets["training"],
   validating_data=normalized_datasets["validation"],
-  epochs=360,
-  batch_size=5,
-  patience=5,
+  epochs=EPOCHS,
+  batch_size=BATCH_SIZE,
+  patience=PATIENCE,
 )
 
 # Ambil History Fit

@@ -2,7 +2,7 @@
 
 from pydantic import validate_call
 
-from custom_types import ListFloat, SequenceFloat
+from neural_network.utils.custom_types import ListFloat, SequenceFloat
 
 # Metode: MSE — Mean Squared Error
 

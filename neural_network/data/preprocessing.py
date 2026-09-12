@@ -1,7 +1,7 @@
 # Bagian Preprocessing Data sebelum Digunakan oleh Model
 
-from normalizer import Normalizer
-from custom_types import (
+from .normalizer import Normalizer
+from neural_network.utils.custom_types import (
   ListFloat,
   SequenceFloat,
   Dataset,

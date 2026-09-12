@@ -2,8 +2,8 @@
 
 from pydantic import validate_call
 
-from layer import Layer
-from custom_types import (
+from .layer import Layer
+from neural_network.utils.custom_types import (
   ListFloat,
   SequenceFloat,
   PositiveFloat,
@@ -17,33 +17,51 @@ class Model:
   def __init__(
     self,
     learning_rate: PositiveFloat,
+    architecture: tuple[PositiveInt, ...] = (3, 4, 4, 2),
     activation: ActivationType = ActivationType.RELU
   ) -> None:
-    self.layers: list[Layer] = [
-      # Input Layer
-      Layer(
-        input_size = 3,
-        neuron_count = 4,
-        learning_rate = learning_rate,
-        activation = activation,
-      ),
+    # Validasi jumlah Layer
+    if len(architecture) < 2:
+      raise ValueError("Arcitecture minimal hrs memiliki Layer Input & Output.")
+
+    # Validasi Layer Input 
+    if architecture[0] != 3:
+      raise ValueError("Input Layer minimal hrs memiliki 3 Input Data.")
+
+    # Validasi Layer Output
+    if architecture[-1] != 2:
+      raise ValueError("Output Layer minimal hrs memiliki 2 Input Data.")
+
+    # Wadah seluruh Layer
+    self.layers: list[Layer] = []
+
+    # Buat Arsitektur Model berdasarkan Architecture
+    for index in range(len(architecture) - 1):
+      # Jumlah Input Data pd tiap Layer
+      input_size = architecture[index]
+
+      # Jumlah Neuron pd tiap Layer
+      neuron_count = architecture[index + 1]
+
+      # Cek apakah Layer merupakan kategori Output
+      is_output_layer = index == len(architecture) - 2
     
-      # Hidden Layer
-      Layer(
-        input_size = 4,
-        neuron_count = 4,
-        learning_rate = learning_rate,
-        activation = activation,
-      ),
-    
-      # Output Layer
-      Layer(
-        input_size = 4,
-        neuron_count = 2,
-        learning_rate = learning_rate,
-        activation = ActivationType.NONE,   # Hrs None untuk Output
-      ),
-    ]
+      # Input Layer  ⟶  Activation
+      # Hidden Layer  ⟶  Activation
+      # Output Layer  ⟶  Linear
+      layer_activation = (
+        ActivationType.NONE if is_output_layer else activation
+      )
+
+      # Simpan Layer
+      self.layers.append(
+        Layer(
+          input_size=input_size,
+          neuron_count=neuron_count,
+          learning_rate=learning_rate,
+          activation=layer_activation,
+        )
+      )
 
   # FORWARD — Proses Prediksi tiap Layer (Maju)
   def forward(self, inputs: SequenceFloat) -> ListFloat:

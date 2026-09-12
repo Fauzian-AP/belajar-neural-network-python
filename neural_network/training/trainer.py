@@ -2,14 +2,10 @@
 
 import copy
 from pydantic import validate_call
-from typing import TypedDict
-
-from batch import Batch
-from layer import Layer
-from model import Model
-from loss import MSE
-from metrics import calculate_metrics
-from custom_types import (
+from neural_network.training import Batch
+from neural_network.core import Layer, Model
+from neural_network.evaluating import MSE, calculate_metrics
+from neural_network.utils.custom_types import (
   PositiveInt,
   Dataset,
   Metrics,

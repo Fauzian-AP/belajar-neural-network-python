@@ -6,14 +6,14 @@ import random
 import math
 from pydantic import validate_call
 
-from activation import (
+from .activation_functions import (
   ReLU,
   ReLU_Gradient,
   Leaky_ReLU,
   Leaky_ReLU_Gradient,
 )
 
-from custom_types import (
+from neural_network.utils.custom_types import (
   ListFloat,
   SequenceFloat,
   PositiveFloat,
