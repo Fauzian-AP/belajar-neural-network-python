@@ -3,22 +3,23 @@
 from pydantic import validate_call
 
 from .layer import Layer
+from .activation_functions import Activation, Linear
+from .optimizer import Optimizer
+
 from src.utils.custom_types import (
   ListFloat,
   SequenceFloat,
-  PositiveFloat,
   PositiveInt,
-  ActivationType,
 )
 
 class Model:
   # CONSTRUCTOR
-  @validate_call
+  @validate_call(config={"arbitrary_types_allowed":True})
   def __init__(
     self,
-    learning_rate: PositiveFloat,
+    optimizer: Optimizer,
     architecture: tuple[PositiveInt, ...] = (3, 4, 4, 2),
-    activation: ActivationType = ActivationType.RELU
+    activation: Activation = None,
   ) -> None:
     # Validasi jumlah Layer
     if len(architecture) < 2:
@@ -35,7 +36,7 @@ class Model:
     # Wadah seluruh Layer
     self.layers: list[Layer] = []
 
-    # Buat Arsitektur Model berdasarkan Architecture
+    # Buat Arsitektur Model
     for index in range(len(architecture) - 1):
       # Jumlah Input Data pd tiap Layer
       input_size = architecture[index]
@@ -50,7 +51,7 @@ class Model:
       # Hidden Layer  ⟶  Activation
       # Output Layer  ⟶  Linear
       layer_activation = (
-        ActivationType.NONE if is_output_layer else activation
+        Linear() if is_output_layer else activation
       )
 
       # Simpan Layer
@@ -58,37 +59,33 @@ class Model:
         Layer(
           input_size=input_size,
           neuron_count=neuron_count,
-          learning_rate=learning_rate,
+          optimizer=optimizer,
           activation=layer_activation,
         )
       )
 
-  # FORWARD — Proses Prediksi tiap Layer (Maju)
+  # FORWARD — Proses Prediksi tiap Layer
   def forward(self, inputs: SequenceFloat) -> ListFloat:
     output = inputs
 
-    # Jalankan Method Forward tiap Layer sehingga Outputnya di Passing terus
+    # Jalankan Method Forward tiap Layer dari awal ke akhir
     for layer in self.layers:
       output = layer.forward(output)
 
     return output
 
-  # BACKWARD — Proses Cek kesalahan tiap Layer (Mundur)
+  # BACKWARD — Proses Cek kesalahan tiap Layer
   def backward(self, gradient_outputs: SequenceFloat) -> ListFloat:
     # Gradient awal
     gradient = gradient_outputs
     
     # Jalankan Method Backward dari Layer terakhir ke awal
-    for i in range(len(self.layers) - 1, -1, -1):
-      # Simpan Layer tiap index
-      layer = self.layers[i]
-
-      # Kirim Gradient ke Layer sebelumnya
+    for layer in reversed(self.layers):
       gradient = layer.backward(gradient)
 
     return gradient
 
-  # RESET GRADIENT — Mengosongkan Gradient Weight & Bias tiap Layer
+  # RESET GRADIENT — Mengosongkan Gradient tiap Layer
   def reset_gradient(self) -> None:
     for layer in self.layers:
       layer.reset_gradient()

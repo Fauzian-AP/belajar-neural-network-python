@@ -3,37 +3,43 @@
 from pydantic import validate_call
 
 from .neuron import Neuron
+from .activation_functions import Activation
+from .optimizer import Optimizer
 from src.utils.custom_types import (
   ListFloat,
   SequenceFloat,
-  PositiveFloat,
   PositiveInt,
-  ActivationType,
 )
 
 class Layer:
   # CONSTRUCTOR — Initialization
-  @validate_call
+  @validate_call(config={"arbitrary_types_allowed":True})
   def __init__(
     self,
     input_size: PositiveInt,
     neuron_count: PositiveInt,
-    learning_rate: PositiveFloat,
-    activation: ActivationType = ActivationType.NONE,
+    activation: Activation,
+    optimizer: Optimizer,
   ) -> None:
     # Menentukan jumlah Inputan yg dpt diproses oleh tiap Neuron
-    self.input_size: int = input_size
+    self.input_size: PositiveInt = input_size
 
     # Menentukan jumlah Neuron yg digunakan
-    self.neuron_count: int = neuron_count
+    self.neuron_count: PositiveInt = neuron_count
 
-    # Jenis Activation yg digunakan
-    self.activation: ActivationType = activation
+    # Jenis Activation Function yg digunakan
+    self.activation: Activation = activation
+
+    # Jenis Optimizer yg digunakan untuk mengupdate Weight & Bias
+    self.optimizer: Optimizer = optimizer
 
     # Simpan Neuron²
     self.neurons: list[Neuron] = [
       # Buat Neuron
-      Neuron(input_size, learning_rate, activation)
+      Neuron(
+        input_size=input_size,
+        activation=activation,
+      )
 
       # Jalankan berdasarkan neuron_count 
       for _ in range(neuron_count)
@@ -59,7 +65,7 @@ class Layer:
     if len(gradient_outputs) != self.neuron_count:
       raise ValueError(f"Panjang gradient_outputs ({len(gradient_outputs)}) tdk sesuai dgn neuron_count ({self.neuron_count}).")
 
-    # Gradient untuk input Layer
+    # Wadah Gradient Input Layer
     gradient_input = [0.0] * self.input_size
 
     # Jalankan Method Backward pd tiap Neuron
@@ -73,18 +79,25 @@ class Layer:
 
     return gradient_input
 
-  # RESET GRADIENT — Proses Reset Gradient Weight & Bias tiap Neuron
+  # RESET GRADIENT — Proses Reset Gradient tiap Neuron
   def reset_gradient(self) -> None:
     for neuron in self.neurons:
       neuron.reset_gradient()
 
-  # AVERAGE GRADIENT — Menghitung Rata² Gradient Weight & Bias tiap Neuron
+  # AVERAGE GRADIENT — Menghitung Rata² Gradient tiap Neuron
   @validate_call
   def average_gradient(self, batch_size: PositiveInt) -> None:
     for neuron in self.neurons:
       neuron.average_gradient(batch_size)
   
-  # STEP — Proses Update Weight & Bias tiap Neuron
+  # STEP — Proses Update Weight & Bias menggunakan Optimizer
   def step(self) -> None:
+    # Jalankan pd tiap Neuron
     for neuron in self.neurons:
-      neuron.step()
+      # Jalankan Optimizer, kemudian Update Weight & Bias
+      neuron.weights, neuron.bias = self.optimizer.update(
+        weights=neuron.weights,
+        bias=neuron.bias,
+        gradient_weights=neuron.gradient_weights,
+        gradient_bias=neuron.gradient_bias,
+      )

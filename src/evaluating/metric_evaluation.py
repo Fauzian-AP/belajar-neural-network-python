@@ -4,7 +4,7 @@ import math
 from pydantic import validate_call
 
 from .loss_functions import MSE
-from neural_network.utils.custom_types import SequenceFloat, Metrics
+from src.utils.custom_types import SequenceFloat, Metrics
 
 # METODE: MAE – Mean Absolute Error 
 

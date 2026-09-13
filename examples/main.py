@@ -8,6 +8,7 @@ from src.data import Preprocessor
 from src.training import Batch, Trainer
 from src.visualization import plot_training, plot_evaluating
 from src.utils.custom_types import ScaleType, EvaluatingType, ActivationType
+
 from src.data.dataset import (
   training_data,
   validation_data,

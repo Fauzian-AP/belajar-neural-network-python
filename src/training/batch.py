@@ -4,7 +4,7 @@ import math
 import random
 from pydantic import validate_call
 
-from neural_network.utils.custom_types import (
+from src.utils.custom_types import (
   PositiveFloat,
   PositiveInt,
   Dataset,

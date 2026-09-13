@@ -2,10 +2,16 @@
 
 import copy
 from pydantic import validate_call
-from neural_network.training import Batch
-from neural_network.core import Layer, Model
-from neural_network.evaluating import MSE, calculate_metrics
-from neural_network.utils.custom_types import (
+from src.training import Batch
+from src.core import Layer, Model
+
+from src.evaluating import (
+  Loss,
+  MSE,
+  calculate_metrics,
+)
+
+from src.utils.custom_types import (
   PositiveInt,
   Dataset,
   Metrics,
@@ -15,12 +21,20 @@ from neural_network.utils.custom_types import (
 
 class Trainer:
   # CONSTRUCTOR — Initialization
-  def __init__(self, model: Model, batch: Batch) -> None:
+  def __init__(
+    self,
+    model: Model,
+    batch: Batch,
+    loss: Loss,
+  ) -> None:
     # Simpan Model
     self.model = model
 
     # Simpan Batch
     self.batch = batch
+
+    # Simpan Loss Function
+    self.loss = loss
 
   # TRAINING — Melatih Model Selama 1 Epoch
   @validate_call
@@ -40,8 +54,8 @@ class Trainer:
         predictions = self.model.forward(inputs)
 
         # Gradient Loss
-        gradient_outputs = MSE.gradient(targets, predictions)
-    
+        gradient_outputs = self.loss.gradient(targets, predictions)
+
         # Backward
         self.model.backward(gradient_outputs)
 

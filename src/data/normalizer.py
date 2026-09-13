@@ -4,7 +4,7 @@
 
 from pydantic import validate_call
 
-from neural_network.utils.custom_types import SequenceFloat
+from src.utils.custom_types import SequenceFloat
 
 class Normalizer:
   # CONSTRUCTOR — Initialization
