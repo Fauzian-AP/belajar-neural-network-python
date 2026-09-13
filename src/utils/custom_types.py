@@ -58,9 +58,12 @@ class FitResult(TypedDict):
   last_epoch: int
   best_validating_mse: float
 
-# Pydantic Validasi
+# Type Pydantic Integer
 PositiveInt = Annotated[int, Field(gt=0, description="Angka bulat hrs > 0")]
 PositiveFloat = Annotated[float, Field(gt=0, description="Angka desimal hrs > 0")]
+
+# Type Pydantic Range
+AlphaRange = Annotated[float, Field(gt=0.0, lt=1.0, description="Alpha hrs di antara 0 dan 1")]
 
 # Enum Jenis² Activation
 class ActivationType(str, Enum):

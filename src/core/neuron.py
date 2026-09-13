@@ -13,7 +13,7 @@ from .activation_functions import (
   Leaky_ReLU_Gradient,
 )
 
-from neural_network.utils.custom_types import (
+from src.utils.custom_types import (
   ListFloat,
   SequenceFloat,
   PositiveFloat,

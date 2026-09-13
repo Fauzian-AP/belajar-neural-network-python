@@ -3,12 +3,12 @@
 import random
 from typing_extensions import Final
 
-from neural_network.core import Model
-from neural_network.data import Preprocessor
-from neural_network.training import Batch, Trainer
-from neural_network.visualization import plot_training, plot_evaluating
-from neural_network.utils.custom_types import ScaleType, EvaluatingType, ActivationType
-from neural_network.data.dataset import (
+from src.core import Model
+from src.data import Preprocessor
+from src.training import Batch, Trainer
+from src.visualization import plot_training, plot_evaluating
+from src.utils.custom_types import ScaleType, EvaluatingType, ActivationType
+from src.data.dataset import (
   training_data,
   validation_data,
   test_data,

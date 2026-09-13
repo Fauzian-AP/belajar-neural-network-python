@@ -3,7 +3,7 @@
 from pydantic import validate_call
 
 from .layer import Layer
-from neural_network.utils.custom_types import (
+from src.utils.custom_types import (
   ListFloat,
   SequenceFloat,
   PositiveFloat,
