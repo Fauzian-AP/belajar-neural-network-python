@@ -3,6 +3,7 @@
 from pydantic import validate_call
 
 from .neuron import Neuron
+from .initialization import Initializer
 from .activation_functions import Activation
 from .optimizer import Optimizer
 from src.utils.custom_types import (
@@ -18,30 +19,33 @@ class Layer:
     self,
     input_size: PositiveInt,
     neuron_count: PositiveInt,
+    initializer: Initializer,
     activation: Activation,
     optimizer: Optimizer,
   ) -> None:
-    # Menentukan jumlah Inputan yg dpt diproses oleh tiap Neuron
+    # Menentukan brp byk input yg bisa diterima oleh tiap Neuron
     self.input_size: PositiveInt = input_size
 
     # Menentukan jumlah Neuron yg digunakan
     self.neuron_count: PositiveInt = neuron_count
 
-    # Jenis Activation Function yg digunakan
+    # Activation yg digunakan
     self.activation: Activation = activation
 
-    # Jenis Optimizer yg digunakan untuk mengupdate Weight & Bias
+    # Initializer yg digunakan
+    self.initializer: Initializer = initializer
+
+    # Jenis Optimizer yg digunakan
     self.optimizer: Optimizer = optimizer
 
-    # Simpan Neuron²
+    # Buat & Simpan Neuron²
     self.neurons: list[Neuron] = [
-      # Buat Neuron
       Neuron(
         input_size=input_size,
+        initializer=initializer,
         activation=activation,
       )
 
-      # Jalankan berdasarkan neuron_count 
       for _ in range(neuron_count)
     ]
 
@@ -54,6 +58,7 @@ class Layer:
     # Jalankan Method Forward pd tiap Neuron
     outputs = [
       neuron.forward(inputs)
+
       for neuron in self.neurons
     ]
 

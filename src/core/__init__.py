@@ -1,5 +1,10 @@
 # Mengatur Alur Import Kode
 
+from .initialization import (
+  Initializer,
+  HeNormal,
+)
+
 from .activation_functions import (
   Activation,
   Linear,

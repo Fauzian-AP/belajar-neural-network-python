@@ -3,6 +3,7 @@
 from pydantic import validate_call
 
 from .layer import Layer
+from .initialization import Initializer
 from .activation_functions import Activation, Linear
 from .optimizer import Optimizer
 
@@ -17,6 +18,7 @@ class Model:
   @validate_call(config={"arbitrary_types_allowed":True})
   def __init__(
     self,
+    initializer: Initializer,
     optimizer: Optimizer,
     architecture: tuple[PositiveInt, ...] = (3, 4, 4, 2),
     activation: Activation = None,
@@ -59,6 +61,7 @@ class Model:
         Layer(
           input_size=input_size,
           neuron_count=neuron_count,
+          initializer=initializer,
           optimizer=optimizer,
           activation=layer_activation,
         )

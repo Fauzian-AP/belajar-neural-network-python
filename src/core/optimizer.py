@@ -49,14 +49,14 @@ class SGD(Optimizer):
     gradient_weights: ListFloat,
     gradient_bias: float,
   ) -> tuple[ListFloat, float]:
-    """ w_baru = w - η × ∂L/∂w """
+    """ Update Weights: w_new = w - η × ∂L/∂w """
     updated_weights = [
       weight - (self.learning_rate * gradient)
       
       for weight, gradient in zip(weights, gradient_weights)
     ]
 
-    """ b_baru = b - η × ∂L/∂b """
+    """ Update Bisa: b_new = b - η × ∂L/∂b """
     updated_bias = bias - (self.learning_rate * gradient_bias)
 
     return updated_weights, updated_bias
