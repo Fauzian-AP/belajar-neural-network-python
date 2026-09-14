@@ -1,6 +1,6 @@
 # Mengatur Alur Import Kode
 
-from .initialization import (
+from .initializer import (
   Initializer,
   HeNormal,
 )

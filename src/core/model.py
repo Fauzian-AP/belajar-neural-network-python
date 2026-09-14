@@ -3,7 +3,7 @@
 from pydantic import validate_call
 
 from .layer import Layer
-from .initialization import Initializer
+from .initializer import Initializer
 from .activation_functions import Activation, Linear
 from .optimizer import Optimizer
 
@@ -52,9 +52,8 @@ class Model:
       # Input Layer  ⟶  Activation
       # Hidden Layer  ⟶  Activation
       # Output Layer  ⟶  Linear
-      layer_activation = (
-        Linear() if is_output_layer else activation
-      )
+
+      layer_activation = Linear() if is_output_layer else activation
 
       # Simpan Layer
       self.layers.append(

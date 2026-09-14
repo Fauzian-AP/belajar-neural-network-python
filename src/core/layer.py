@@ -3,7 +3,7 @@
 from pydantic import validate_call
 
 from .neuron import Neuron
-from .initialization import Initializer
+from .initializer import Initializer
 from .activation_functions import Activation
 from .optimizer import Optimizer
 from src.utils.custom_types import (

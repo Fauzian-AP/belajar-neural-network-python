@@ -8,7 +8,7 @@ import random
 import math
 from pydantic import validate_call
 
-from .initialization import Initializer
+from .initializer import Initializer
 from .activation_functions import Activation
 from src.utils.custom_types import (
   ListFloat,
