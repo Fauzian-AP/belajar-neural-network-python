@@ -1,5 +1,5 @@
 """
-Bagian Pengelolaan Initialization 
+Bagian Pengelolaan Initialization
 """
 
 import math
@@ -13,12 +13,12 @@ from src.utils.custom_types import (
   PositiveInt,
 )
 
-# ====================================
-# === BLUEPRINT WEIGHT INITIALIZER ===
-# ====================================
+# =============================
+# === BLUEPRINT INITIALIZER ===
+# =============================
 
 class Initializer(ABC):
-  # DUNDER — Menjalankan Method setelah Initialization yaitu Weight menggunakan Initializer
+  # DUNDER — Menjalankan Method setelah Initialization yaitu Generate Weight menggunakan Initializer
   @abstractmethod
   def __call__(self, input_size: PositiveInt) -> ListFloat:
     raise NotImplementedError("Sub Class hrs mengimplementasi method __call__().")
@@ -28,7 +28,7 @@ class Initializer(ABC):
 # === METODE² INITIALIZER ===
 # ===========================
 
-# He / Kaiming — Menentukan nilai awal Weight yg sesuai skala dgn jumlah Input
+# He/Kaiming — Menentukan nilai Weight awal menggunakan Distribusi Gaussian berbentuk Lonceng
 
 class HeNormal(Initializer):
   @validate_call

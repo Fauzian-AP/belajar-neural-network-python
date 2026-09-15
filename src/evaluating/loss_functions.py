@@ -1,18 +1,23 @@
-# Bagian Pengelolaan Loss Function, yaitu Angka yg digunakan untuk mengukur seberapa salah Prediksi Model
+"""
+Bagian Pengelolaan Loss Function, yaitu:
+
+Angka yg digunakan untuk mengukur seberapa salah atau error yg dihasilkan pd sebuah Prediksi Model.
+"""
 
 from abc import ABC, abstractmethod
 
 from src.utils.custom_types import ListFloat, SequenceFloat
 
-
-# BLUEPRINT LOSS
+# ======================
+# === BLUEPRINT LOSS ===
+# ======================
 
 class Loss(ABC):
-  # VALIDATE INPUT
+  # VALIDATE INPUT — Memastikan panjang targets dgn predictions sesuai
   def _validate_inputs(
     self,
     targets: SequenceFloat,
-    predictions: SequenceFloat
+    predictions: SequenceFloat,
   ) -> None:
     # Validasi input
     if not targets or not predictions:
@@ -22,14 +27,14 @@ class Loss(ABC):
     if len(targets) != len(predictions):
       raise ValueError(f"Panjang targets ({len(targets)}) dgn predictions ({len(predictions)}) tdk cocok.")
 
-  # DUNDER — Menjalankan Method utama yaitu menghitung aktivasi
+  # DUNDER — Menjalankan Method setelah Initialization yaitu menjalankan aktivasi
   @abstractmethod
   def __call__(
     self,
     targets: SequenceFloat,
     predictions: SequenceFloat,
   ) -> float:
-    raise NotImplementedError("Sub Class hrs mengimplementasikan method loss.")
+    raise NotImplementedError("Sub Class hrs mengimplementasikan method __call__().")
 
   # GRADIENT — Menghitung Loss pd Gradient
   @abstractmethod
@@ -38,13 +43,15 @@ class Loss(ABC):
     targets: SequenceFloat,
     predictions: SequenceFloat,
   ) -> ListFloat:
-    raise NotImplementedError("Sub Class hrs mengimplementasikan method loss gradient.")
+    raise NotImplementedError("Sub Class hrs mengimplementasikan method gradient().")
 
+# ====================
+# === METODE² LOSS ===
+# ====================
 
-# Mean Squared Error
+# Mean Squared Error — 
 
 class MSE(Loss):
-  # DUNDER  — Menghitung nilai Loss dari MSE
   def __call__(
     self,
     targets: SequenceFloat,
@@ -61,7 +68,6 @@ class MSE(Loss):
   
     return total / len(targets)
 
-  # GRADIENT — Menghitung Gradient Loss sehingga dpt ditentukan Update Weight & Bias nya
   def gradient(
     self,
     targets: SequenceFloat,
