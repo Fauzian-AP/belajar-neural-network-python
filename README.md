@@ -47,7 +47,7 @@ python -m venv .venv
 Aktifkan:
 
 ```powershell
-.venv\Scripts\Activate.ps1
+.\venv\Scripts\Activate
 ```
 
 Jika menggunakan Command Prompt:

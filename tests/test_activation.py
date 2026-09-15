@@ -1,18 +1,63 @@
-from pydantic import ValidationError
-from src.core.activation_functions import LeakyReLU  # Sesuaikan path import file kamu
+from src.core import (
+  Linear,
+  ReLU,
+  LeakyReLU,
+)
 
-# --- TEST 1: Nilai Valid (Harus Berhasil) ---
+# LINEAR
+
+linear = Linear()
+
+print("=== Linear ===")
+
+print(linear(5.0))
+
+print(linear.gradient(5.0))
+
+# RELU
+
+relu = ReLU()
+
+print()
+print("=== ReLU ===")
+
+print(relu(5.0))
+print(relu(-5.0))
+
+print(relu.gradient(5.0))
+print(relu.gradient(-5.0))
+
+# LEAKY RELU
+
+leaky_relu = LeakyReLU(alpha=0.01)
+
+print()
+print("=== LeakyReLU ===")
+
+print(leaky_relu(5.0))
+print(leaky_relu(-5.0))
+
+print(leaky_relu.gradient(5.0))
+print(leaky_relu.gradient(-5.0))
+
+# ALPHA VALIDATION
+
+print()
+print("=== Alpha Validation ===")
+
 try:
-    layer_valid = LeakyReLU(alpha=0.05)
-    print("✅ Test Valid Berhasil! Nilai:", layer_valid.alpha)
-except ValidationError as e:
-    print("❌ Error tidak terduga pada nilai valid:", e)
+  LeakyReLU(alpha=0.0)
+except Exception as error:
+  print(type(error).__name__)
 
-
-# --- TEST 2: Nilai Invalid / Di luar rentang (Harus Error) ---
 try:
-    layer_invalid = LeakyReLU(alpha=1.5)  # Melanggar lt=1.0
-    print("❌ GAGAL: Pydantic meloloskan nilai 1.5 padahal harusnya diblokir!")
-except ValidationError as e:
-    print("✅ Test Invalid Berhasil! Pydantic sukses memblokir 1.5:")
-    print(e)
+  lr = LeakyReLU(alpha=1.0)
+
+  print(f"Isi Alpha: {lr.alpha}")
+except Exception as error:
+  print(type(error).__name__)
+
+try:
+  LeakyReLU(alpha=1.5)
+except Exception as error:
+  print(type(error).__name__)

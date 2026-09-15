@@ -1,15 +1,14 @@
 """
-Bagian pengelolaan Optimasi yaitu:
+Bagian pengelolaan Optimalisasi yaitu:
 
 Menyesuaikan Weight & Bias secara berulang-ulang untuk meminimalkan nilai Loss berdasarkan Gradient.
 """
 
 from abc import ABC, abstractmethod
-from pydantic import validate_call
 
 from src.utils.custom_types import (
-  ListFloat,
-  PositiveFloat
+  FloatVector,
+  FloatPositive,
 )
 
 # ===========================
@@ -17,17 +16,16 @@ from src.utils.custom_types import (
 # ===========================
 
 class Optimizer(ABC):
-  # UPDATE — Proses penyesuaian Weight & Bias setelah menjalani sebuah pelatihan
+  # UPDATE — Proses penyesuaian Weight & Bias berdasarkan Gradient
   @abstractmethod
-  def update(
+  def __call__(
     self,
-    weights: ListFloat,
+    weights: FloatVector,
     bias: float,
-    gradient_weights: ListFloat,
+    gradient_weights: FloatVector,
     gradient_bias: float,
-  ) -> tuple[ListFloat, float]:
-    raise NotImplementedError("Sub Class hrs mengimplementasikan method update().")
-
+  ) -> tuple[FloatVector, float]:
+    raise NotImplementedError("Sub Class hrs mengimplementasikan method __call__().")
 
 # =========================
 # === METODE² OPTIMIZER ===
@@ -37,22 +35,20 @@ class Optimizer(ABC):
 
 class SGD(Optimizer):
   # CONSTRUCTOR — Initialization
-  @validate_call
-  def __init__(self, learning_rate: PositiveFloat) -> None:
-    # Menentukan seberapa besar perubahan Weight & Bias dalam setiap update.
-    self.learning_rate: PositiveFloat = learning_rate
+  def __init__(self, learning_rate: FloatPositive) -> None:
+    # Menentukan seberapa besar perubahan Weight & Bias dalam setiap update
+    self.learning_rate: FloatPositive = learning_rate
 
-  def update(
+  def __call__(
     self,
-    weights: ListFloat,
+    weights: FloatVector,
     bias: float,
-    gradient_weights: ListFloat,
+    gradient_weights: FloatVector,
     gradient_bias: float,
-  ) -> tuple[ListFloat, float]:
+  ) -> tuple[FloatVector, float]:
     """ Update Weights: w_new = w - η × ∂L/∂w """
     updated_weights = [
       weight - (self.learning_rate * gradient)
-      
       for weight, gradient in zip(weights, gradient_weights)
     ]
 

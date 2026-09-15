@@ -1,31 +1,85 @@
-# Bagian Metrics, yaitu ukuran yg gunakan untuk mengetahui seberapa bagus performa Model
+"""
+Bagian Pengelolaan Metric, yaitu:
+
+Ukuran yg gunakan untuk mengetahui seberapa bagus Performa sebuah Model.
+"""
 
 import math
-from pydantic import validate_call
+from abc import ABC, abstractmethod
+from pydantic import validate_call, model_validator
+from typing_extensions import Any
 
-from .loss_functions import MSE
-from src.utils.custom_types import SequenceFloat, Metrics
+from src.utils.custom_types import ListFloat, SequenceFloat, Metrics
 
-# METODE: MAE – Mean Absolute Error 
+# ========================
+# === BLUEPRINT METRIC ===
+# ========================
 
-class MAE:
-  # VALIDATE INPUT
+class Metric(ABC):
+  # VALIDATE INPUT — Decorator yg memvalidasi Input
   @staticmethod
-  @validate_call
-  def _validate_inputs(targets: SequenceFloat, predictions: SequenceFloat) -> None:
-    if not targets or not predictions:
-      raise ValueError("targets & predictions tdk boleh kosong.")
+  def validate_inputs(func):
+    @validate_call
+    @model_validator(mode='after')
+    def wrapper(self_validator: Any) -> Any:
+      targets = getattr(self_validator, 'targets', None)
+      predictions = getattr(self_validator, 'predictions', None)
+
+      # Validasi input
+      if targets is not None or predictions is not None:
+        # Validasi panjang input
+        if len(targets) != len(predictions):
+          raise ValueError(f"Panjang targets ({len(targets)}) dgn predictions ({len(predictions)}) tdk cocok.")
+
+      return self_validator
+
+    return validate_call(func, config={"arbitrary_types_allowed": True})
+
+  # DUNDER — Menjalankan Method setelah Initialization yaitu menjalankan aktivasi
+  @abstractmethod
+  def __call__(
+    self,
+    targets: SequenceFloat,
+    predictions: SequenceFloat,
+  ) -> float:
+    raise NotImplementedError("Sub Class hrs mengimplementasikan method __call__().")
+
+  # GRADIENT — Menghitung Loss pd Gradient
+  @abstractmethod
+  def gradient(
+    self,
+    targets: SequenceFloat,
+    predictions: SequenceFloat,
+  ) -> ListFloat:
+    raise NotImplementedError("Sub Class hrs mengimplementasikan method gradient().")
+
+# ======================
+# === METODE² METRIC ===
+# ======================
+
+#  Mean Squared Error — 
+
+class MSE(Metrics):
+  @Metrics.validate_inputs
+  def __call__(
+    self,
+    targets: SequenceFloat,
+    predictions: SequenceFloat
+  ) -> float:  
+    """ MSE = (1/n) × Σ(y - ŷ)² """
+    total = sum(
+      (target - prediction) ** 2
+      for target, prediction in zip(targets, predictions)
+    )
   
-    if len(targets) != len(predictions):
-      raise ValueError(f"Panjang targets ({len(targets)}) dgn predictions ({len(predictions)}) tdk cocok.")      
+    return total / len(targets)
 
-  # CALCULATE — Menghitung nilai rata² jarak absolut error
-  @staticmethod
-  @validate_call
+
+# Mean Absolute Error Menghitung nilai rata² jarak absolut error
+
+class MAE(Metrics):
+  @Metrics.validate_inputs
   def calculate(targets: SequenceFloat, predictions: SequenceFloat) -> float:
-    # Validasi
-    MAE._validate_inputs(targets, predictions)
-  
     """ MAE = (1/n) × Σ|y - ŷ| """
     total_error = sum(
       abs(target - prediction)
@@ -35,12 +89,10 @@ class MAE:
     return total_error / len(targets)
 
 
-# METODE: RMSE — Root Mean Squared Error
+# Root Mean Squared Error — Hasil MSE di-akar sehingga satuannya kembali sama dgn Target
 
-class RMSE:
-  # CALCULATE — Hasil MSE di-akar sehingga satuannya kembali sama dgn Target
-  @staticmethod
-  @validate_call
+class RMSE(Metrics):
+  @Metrics.validate_inputs
   def calculate(targets: SequenceFloat, predictions: SequenceFloat) -> float:
     """ RMSE = √MSE """
     mse = MSE.calculate(targets, predictions)

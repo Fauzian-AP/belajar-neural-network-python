@@ -1,33 +1,34 @@
-# Merupakan Bagian Lapisan yg mengatur Sekumpulan Neuron pd Sistem Neural Network
+"""
+Bagian Pengelolaan Layer, yaitu:
 
-from pydantic import validate_call
+Membuat & Mengatur sekumpulan Neuron agar dapat memproses Input secara bersamaan dan menghasilkan sekumpulan Output.
+"""
 
 from .neuron import Neuron
 from .initializer import Initializer
 from .activation_functions import Activation
 from .optimizer import Optimizer
 from src.utils.custom_types import (
-  ListFloat,
-  SequenceFloat,
-  PositiveInt,
+  FloatVector,
+  FloatSeq,
+  IntPositive,
 )
 
 class Layer:
   # CONSTRUCTOR — Initialization
-  @validate_call(config={"arbitrary_types_allowed":True})
   def __init__(
     self,
-    input_size: PositiveInt,
-    neuron_count: PositiveInt,
+    input_size: IntPositive,
+    neuron_count: IntPositive,
     initializer: Initializer,
     activation: Activation,
     optimizer: Optimizer,
   ) -> None:
     # Menentukan brp byk input yg bisa diterima oleh tiap Neuron
-    self.input_size: PositiveInt = input_size
+    self.input_size: IntPositive = input_size
 
     # Menentukan jumlah Neuron yg digunakan
-    self.neuron_count: PositiveInt = neuron_count
+    self.neuron_count: IntPositive = neuron_count
 
     # Activation yg digunakan
     self.activation: Activation = activation
@@ -35,7 +36,7 @@ class Layer:
     # Initializer yg digunakan
     self.initializer: Initializer = initializer
 
-    # Jenis Optimizer yg digunakan
+    # Optimizer yg digunakan
     self.optimizer: Optimizer = optimizer
 
     # Buat & Simpan Neuron²
@@ -49,8 +50,8 @@ class Layer:
       for _ in range(neuron_count)
     ]
 
-  # FORWARD — Proses Prediksi tiap Neuron
-  def forward(self, inputs: SequenceFloat) -> ListFloat:
+  # FORWARD — Proses Menghasilkan Prediksi tiap Neuron
+  def forward(self, inputs: FloatSeq) -> FloatVector:
     # Validasi Inputs
     if len(inputs) != self.input_size:
       raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
@@ -58,19 +59,18 @@ class Layer:
     # Jalankan Method Forward pd tiap Neuron
     outputs = [
       neuron.forward(inputs)
-
       for neuron in self.neurons
     ]
 
     return outputs
 
-  # BACKWARD — Proses Cek Kesalahan tiap Neuron
-  def backward(self, gradient_outputs: SequenceFloat) -> ListFloat:
+  # BACKWARD — Proses Menghitung Gradient tiap Neuron
+  def backward(self, gradient_outputs: FloatSeq) -> FloatVector:
     # Validasi
     if len(gradient_outputs) != self.neuron_count:
       raise ValueError(f"Panjang gradient_outputs ({len(gradient_outputs)}) tdk sesuai dgn neuron_count ({self.neuron_count}).")
 
-    # Wadah Gradient Input Layer
+    # Wadah Gradient Input
     gradient_input = [0.0] * self.input_size
 
     # Jalankan Method Backward pd tiap Neuron
@@ -84,22 +84,20 @@ class Layer:
 
     return gradient_input
 
-  # RESET GRADIENT — Proses Reset Gradient tiap Neuron
+  # RESET GRADIENT — Proses Mengosongkan Gradient tiap Neuron
   def reset_gradient(self) -> None:
     for neuron in self.neurons:
       neuron.reset_gradient()
 
   # AVERAGE GRADIENT — Menghitung Rata² Gradient tiap Neuron
-  @validate_call
-  def average_gradient(self, batch_size: PositiveInt) -> None:
+  def average_gradient(self, batch_size: IntPositive) -> None:
     for neuron in self.neurons:
       neuron.average_gradient(batch_size)
   
   # STEP — Proses Update Weight & Bias menggunakan Optimizer
   def step(self) -> None:
-    # Jalankan pd tiap Neuron
     for neuron in self.neurons:
-      # Jalankan Optimizer, kemudian Update Weight & Bias
+      # Optimize, lalu kemudian Update Weight & Bias
       neuron.weights, neuron.bias = self.optimizer.update(
         weights=neuron.weights,
         bias=neuron.bias,

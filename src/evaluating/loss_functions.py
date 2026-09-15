@@ -5,6 +5,8 @@ Angka yg digunakan untuk mengukur seberapa salah atau error yg dihasilkan pd seb
 """
 
 from abc import ABC, abstractmethod
+from pydantic import validate_call, model_validator
+from typing_extensions import Any
 
 from src.utils.custom_types import ListFloat, SequenceFloat
 
@@ -13,19 +15,24 @@ from src.utils.custom_types import ListFloat, SequenceFloat
 # ======================
 
 class Loss(ABC):
-  # VALIDATE INPUT — Memastikan panjang targets dgn predictions sesuai
-  def _validate_inputs(
-    self,
-    targets: SequenceFloat,
-    predictions: SequenceFloat,
-  ) -> None:
-    # Validasi input
-    if not targets or not predictions:
-      raise ValueError("targets & predictions tdk boleh kosong.")
+  # VALIDATE INPUT — Decorator yg memvalidasi Input
+  @staticmethod
+  def validate_inputs(func):
+    @validate_call
+    @model_validator(mode='after')
+    def wrapper(self_validator: Any) -> Any:
+      targets = getattr(self_validator, 'targets', None)
+      predictions = getattr(self_validator, 'predictions', None)
 
-    # Validasi panjang input
-    if len(targets) != len(predictions):
-      raise ValueError(f"Panjang targets ({len(targets)}) dgn predictions ({len(predictions)}) tdk cocok.")
+      # Validasi input
+      if targets is not None or predictions is not None:
+        # Validasi panjang input
+        if len(targets) != len(predictions):
+          raise ValueError(f"Panjang targets ({len(targets)}) dgn predictions ({len(predictions)}) tdk cocok.")
+
+      return self_validator
+
+    return validate_call(func, config={"arbitrary_types_allowed": True})
 
   # DUNDER — Menjalankan Method setelah Initialization yaitu menjalankan aktivasi
   @abstractmethod
@@ -52,14 +59,12 @@ class Loss(ABC):
 # Mean Squared Error — 
 
 class MSE(Loss):
+  @Loss.validate_inputs
   def __call__(
     self,
     targets: SequenceFloat,
     predictions: SequenceFloat
-  ) -> float:
-    # Validasi
-    self._validate_inputs(targets, predictions)
-  
+  ) -> float:  
     """ MSE = (1/n) × Σ(y - ŷ)² """
     total = sum(
       (target - prediction) ** 2
@@ -68,37 +73,51 @@ class MSE(Loss):
   
     return total / len(targets)
 
+  @Loss.validate_inputs
   def gradient(
     self,
     targets: SequenceFloat,
     predictions: SequenceFloat
   ) -> ListFloat:
-    # Validasi
-    self._validate_inputs(targets, predictions)
-  
     """ ∂MSE/∂ŷ = (2/n) × (ŷ - y) """
     return [
-      (2 * (prediction - target)) / len(targets)
+      2 * (prediction - target) / len(targets)
+
       for target, prediction in zip(targets, predictions)
     ]
 
 
-# Mean Absolute Error 
+# Mean Absolute Error Menghitung nilai rata² jarak absolut error
 
 class MAE(Loss):
-  # DUNDER — Menghitung nilai rata² jarak absolut error
+  @Loss.validate_inputs
   def __call__(
     self,
     targets: SequenceFloat,
     predictions: SequenceFloat
-  ) -> float:
-    # Validasi
-    self._validate_inputs(targets, predictions)
-  
+  ) -> float:  
     """ MAE = (1/n) × Σ|y - ŷ| """
     total_error = sum(
       abs(target - prediction)
+
       for target, prediction in zip(targets, predictions)
     )
   
     return total_error / len(targets)
+
+  @Loss.validate_inputs
+  def gradient(
+    self,
+    targets: SequenceFloat,
+    predictions: SequenceFloat,
+  ) -> ListFloat:
+    return [
+      (
+        1.0
+        if prediction > target
+        else -1.0
+        if predictions < target
+        else 0.0
+      )
+      for target, prediction in zip(targets, predictions)
+    ]

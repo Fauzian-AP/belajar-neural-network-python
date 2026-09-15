@@ -1,77 +1,80 @@
-# Bagian Pengelolaan Type Checking Project Neural Network
+# Bagian Pengelolaan Type Code pd Project Neural Network
 
+from beartype.vale import Is
 from enum import Enum
-from pydantic import Field
 from typing_extensions import (
   Annotated,
   Sequence,
-  TypedDict, 
+  TypedDict,
   TypeAlias,
 )
 
-# Aliases Numeric
+# BASIC TYPES
+
 Numeric: TypeAlias = int | float
 
-# Aliases Number
-ListInt: TypeAlias = list[int]
-SequenceInt: TypeAlias = Sequence[int]
+IntVector: TypeAlias = list[int]
 
-# Aliases Float
-ListFloat: TypeAlias = list[float]
-SequenceFloat: TypeAlias = Sequence[float]
+FloatVector: TypeAlias = list[float]
+FloatSeq: TypeAlias = Sequence[float]
 
-# Aliases Dataset
-Dataset: TypeAlias = list[tuple[ListFloat, ListFloat]]
+# NUMERIC CONSTRAINTS
+
+IntPositive: TypeAlias = Annotated[int, Is[lambda value: value > 0]]
+FloatPositive: TypeAlias = Annotated[float, Is[lambda value: value > 0.0]]
+
+NonEmptyFloatSeq: TypeAlias = Annotated[FloatSeq, Is[lambda value: bool(value)]]
+
+AlphaRange: TypeAlias = Annotated[float, Is[lambda value: 0.0 < value < 1.0]]
+
+# DATASET TYPES
+
+Dataset: TypeAlias = list[tuple[FloatVector, FloatVector]]
 ListDataset: TypeAlias = list[Dataset]
 DatasetType: TypeAlias = dict[str, Dataset]
 
-# Type Metrics
+# EVALUATING TYPES
+
 class Metrics(TypedDict):
   MSE: float
   MAE: float
   RMSE: float
 
-# Aliases Plot
 EvaluatingType: TypeAlias = dict[str, Metrics]
 
-# Type Cache Neuron
+# CACHE NEURON TYPE
+
 class CacheNeuron(TypedDict):
-  inputs: ListFloat
+  inputs: FloatVector
   pre_activation: float
 
-# Type Metrics History Trainer
-class MetricsHistory(TypedDict):
-  MSE: list[float]
-  MAE: list[float]
-  RMSE: list[float]
+# TRAINING HISTORY TYPES
 
-# Type History Fit Trainer
+class MetricsHistory(TypedDict):
+  MSE: FloatVector
+  MAE: FloatVector
+  RMSE: FloatVector
+
 class FitHistory(TypedDict):
-  epochs: list[int]
+  epochs: IntVector
   training_metrics: MetricsHistory
   validating_metrics: MetricsHistory
 
-# Type Result Fit Trainer
 class FitResult(TypedDict):
   history: FitHistory
   best_epoch: int
   last_epoch: int
   best_validating_mse: float
 
-# Type Pydantic Integer
-PositiveInt = Annotated[int, Field(gt=0, description="Angka bulat hrs > 0")]
-PositiveFloat = Annotated[float, Field(gt=0, description="Angka desimal hrs > 0")]
-
-# Type Pydantic Range
-AlphaRange = Annotated[float, Field(gt=0.0, lt=1.0, description="Alpha hrs di antara 0 dan 1")]
-
 # Enum Jenis² Activation
+
 class ActivationType(str, Enum):
   NONE = "none"
   RELU = "ReLU"
   LEAKY_RELU = "Leaky_ReLU"
 
 # Enum Jenis² Bentuk Data
+
 class ScaleType(str, Enum):
   ORIGINAL = "original"
   NORMALIZE = "normalize"

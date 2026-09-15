@@ -1,27 +1,23 @@
-# Bagian Utama untuk membuat Model Machine Learning
-
-from pydantic import validate_call
+""" Bagian Utama untuk Pengelolaan Model Neural Network """
 
 from .layer import Layer
 from .initializer import Initializer
 from .activation_functions import Activation, Linear
 from .optimizer import Optimizer
-
 from src.utils.custom_types import (
-  ListFloat,
-  SequenceFloat,
-  PositiveInt,
+  FloatVector,
+  FloatSeq,
+  IntPositive,
 )
 
 class Model:
-  # CONSTRUCTOR
-  @validate_call(config={"arbitrary_types_allowed":True})
+  # CONSTRUCTOR — Initialization
   def __init__(
     self,
     initializer: Initializer,
     optimizer: Optimizer,
-    architecture: tuple[PositiveInt, ...] = (3, 4, 4, 2),
-    activation: Activation = None,
+    activation: Activation,
+    architecture: tuple[IntPositive, ...] = (3, 4, 4, 2),
   ) -> None:
     # Validasi jumlah Layer
     if len(architecture) < 2:
@@ -29,11 +25,11 @@ class Model:
 
     # Validasi Layer Input 
     if architecture[0] != 3:
-      raise ValueError("Input Layer minimal hrs memiliki 3 Input Data.")
+      raise ValueError("Input Layer minimal hrs memiliki 3 Input.")
 
     # Validasi Layer Output
     if architecture[-1] != 2:
-      raise ValueError("Output Layer minimal hrs memiliki 2 Input Data.")
+      raise ValueError("Output Layer minimal hrs memiliki 2 Input.")
 
     # Wadah seluruh Layer
     self.layers: list[Layer] = []
@@ -66,8 +62,9 @@ class Model:
         )
       )
 
-  # FORWARD — Proses Prediksi tiap Layer
-  def forward(self, inputs: SequenceFloat) -> ListFloat:
+  # FORWARD — Proses Menghasilkan Prediksi tiap Layer
+  def forward(self, inputs: FloatSeq) -> FloatVector:
+    # Simpan nilai awal
     output = inputs
 
     # Jalankan Method Forward tiap Layer dari awal ke akhir
@@ -76,8 +73,8 @@ class Model:
 
     return output
 
-  # BACKWARD — Proses Cek kesalahan tiap Layer
-  def backward(self, gradient_outputs: SequenceFloat) -> ListFloat:
+  # BACKWARD — Proses Menghitung Gradient tiap Layer
+  def backward(self, gradient_outputs: FloatSeq) -> FloatVector:
     # Gradient awal
     gradient = gradient_outputs
     
@@ -92,9 +89,8 @@ class Model:
     for layer in self.layers:
       layer.reset_gradient()
 
-  # AVERAGE GRADIENT — Menghitung rata²
-  @validate_call
-  def average_gradient(self, batch_size: PositiveInt) -> None:
+  # AVERAGE GRADIENT — Menghitung Rata² Gradient tiap Layer
+  def average_gradient(self, batch_size: IntPositive) -> None:
     for layer in self.layers:
       layer.average_gradient(batch_size)
 

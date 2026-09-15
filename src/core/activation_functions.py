@@ -1,11 +1,10 @@
 """
 Bagian Pengelolaan 'Activation Function' yaitu:
 
-Fungsi Aktivasi pd NN yg digunakan menentukan Output suatu Neuron berdasarkan nilai Pre-Activation.
+Nebetukan Metode dari Fungsi Aktivasi yg digunakan menentukan Output suatu Neuron berdasarkan nilai Pre-Activation.
 """
 
 from abc import ABC, abstractmethod
-from pydantic import validate_call
 
 from src.utils.custom_types import Numeric, AlphaRange
 
@@ -59,7 +58,6 @@ class ReLU(Activation):
 
 class LeakyReLU(Activation):
   # CONSTRUCTOR — Initialization
-  @validate_call
   def __init__(self, alpha: AlphaRange = 0.01) -> None:
     # Nilai Alpha menentukan seberapa bsr nilai negatif yg tetap dpt dilewati
     self._alpha: AlphaRange = alpha
@@ -80,7 +78,7 @@ class LeakyReLU(Activation):
 
   def gradient(self, pre_activation: Numeric) -> float:
     """
-    f'(z) = { 1 jika z > 0
-            { α jika z ⩽ 0
+    f'(z) = { 1, jika z > 0
+            { α, jika z ⩽ 0
     """
     return 1.0 if pre_activation > 0.0 else self._alpha

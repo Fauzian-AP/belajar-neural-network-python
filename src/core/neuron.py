@@ -1,57 +1,52 @@
 """
-Pengelolaan Bagian paling dasar dari Sistem Neural Network yaitu:
+Bagian Pengelolaan paling dasar dari Sistem Neural Network yaitu:
 
-Neuron / Saraf yg menerima beberapa Input, memberikan Weight pada tiap Input, menambahkan Bias, lalu menghasilkan Output melalui Activation Function.
+Neuron / Saraf yg digunakan untuk menerima beberapa Input, memberikan Weight pd tiap Input, menambahkan Bias, lalu menghasilkan Output.
 """
-
-import random
-import math
-from pydantic import validate_call
 
 from .initializer import Initializer
 from .activation_functions import Activation
 from src.utils.custom_types import (
-  ListFloat,
-  SequenceFloat,
-  PositiveInt,
+  FloatVector,
+  FloatSeq,
+  IntPositive,
   CacheNeuron,
 )
 
 class Neuron:
   # CONSTRUCTOR — Initialization
-  @validate_call(config={"arbitrary_types_allowed":True})
   def __init__(
     self,
-    input_size: PositiveInt,
+    input_size: IntPositive,
     initializer: Initializer,
     activation: Activation,
   ) -> None:
     # Menentukan brp byk input yg bisa diterima Neuron
-    self.input_size: PositiveInt = input_size
+    self.input_size: IntPositive = input_size
 
     # Activation yg digunakan
     self.activation: Activation = activation
 
-    # Initializer yg digunakan untuk membuat Weight
+    # Initializer yg digunakan
     self.initializer: Initializer = initializer
 
-    # Menentukan seberapa bsr pengaruh tiap Input terhadap Output
-    self.weights: ListFloat = initializer(input_size)
+    # Menentukan pengaruh tiap Input terhadap Output
+    self.weights: FloatVector = initializer(input_size)
 
-    # Menentukan pergeseran nilai pd Pre-Activation
+    # Menentukan pergeseran nilai Pre-Activation
     self.bias: float = 0.0
 
-    # Menunjukkan seberapa sensitif Loss terhadap Weight
-    self.gradient_weights: ListFloat = [0.0] * input_size   # Tiap input ada
+    # Menyimpan Gradient terhadap tiap Weight
+    self.gradient_weights: FloatVector = [0.0] * input_size
 
-    # Menunjukkan seberapa sensitif Loss terhadap Bias
+    # Menyimpan Gradient terhadap Bias
     self.gradient_bias: float = 0.0
 
-    # Menyimpan Nilai² yg dibutuhkan dlm Object ini
+    # Menyimpan Nilai² yg dibutuhkan dlm Neuron ini
     self.cache: CacheNeuron | None = None
 
   # FORWARD — Proses Menghasilkan Prediksi
-  def forward(self, inputs: SequenceFloat) -> float:
+  def forward(self, inputs: FloatSeq) -> float:
     # Validasi Inputs
     if len(inputs) != self.input_size:
       raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
@@ -68,8 +63,8 @@ class Neuron:
     """ Activation: y = f(z) """
     return self.activation(pre_activation)
 
-  # BACKWARD — Menghitung & Menyebarkan Gradient
-  def backward(self, gradient_output: float) -> ListFloat:
+  # BACKWARD — Menghitung Gradient yaitu nilai yg menunjukkan seberapa besar perubahan Loss
+  def backward(self, gradient_output: float) -> FloatSeq:
     # Validasi Cache
     if self.cache is None:
       raise ValueError("Backward tdk dpt dilakukan sebelum Forward.")
@@ -106,9 +101,8 @@ class Neuron:
     # Gradient Bias
     self.gradient_bias = 0.0
 
-  # AVERAGE GRADIENT — Menghitung rata² Gradient Weight & Bias
-  @validate_call
-  def average_gradient(self, batch_size: PositiveInt) -> None:
+  # AVERAGE GRADIENT — Menghitung Rata² Gradient Weight & Bias
+  def average_gradient(self, batch_size: IntPositive) -> None:
     # Gradient Weight
     self.gradient_weights = [
       gradient / batch_size
