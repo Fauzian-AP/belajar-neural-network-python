@@ -1,9 +1,9 @@
 """ Bagian Utama untuk Pengelolaan Model Neural Network """
 
-from .layer import Layer
 from .initializer import Initializer
-from .activation_functions import Activation, Linear
 from .optimizer import Optimizer
+from .activation_functions import Activation, Linear
+from .layer import Layer
 from src.utils.custom_types import (
   FloatVector,
   FloatSeq,
@@ -21,15 +21,15 @@ class Model:
   ) -> None:
     # Validasi jumlah Layer
     if len(architecture) < 2:
-      raise ValueError("Arcitecture minimal hrs memiliki Layer Input & Output.")
+      raise ValueError("Architecture minimal hrs memiliki Layer Input & Output.")
 
     # Validasi Layer Input 
     if architecture[0] != 3:
-      raise ValueError("Input Layer minimal hrs memiliki 3 Input.")
+      raise ValueError("Input Layer minimal hrs memiliki 3 Neuron.")
 
     # Validasi Layer Output
     if architecture[-1] != 2:
-      raise ValueError("Output Layer minimal hrs memiliki 2 Input.")
+      raise ValueError("Output Layer minimal hrs memiliki 2 Neuron.")
 
     # Wadah seluruh Layer
     self.layers: list[Layer] = []

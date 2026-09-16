@@ -4,6 +4,7 @@ from src.core import (
   LeakyReLU,
 )
 
+
 # LINEAR
 
 linear = Linear()
@@ -13,6 +14,7 @@ print("=== Linear ===")
 print(linear(5.0))
 
 print(linear.gradient(5.0))
+
 
 # RELU
 
@@ -27,6 +29,7 @@ print(relu(-5.0))
 print(relu.gradient(5.0))
 print(relu.gradient(-5.0))
 
+
 # LEAKY RELU
 
 leaky_relu = LeakyReLU(alpha=0.01)
@@ -39,6 +42,7 @@ print(leaky_relu(-5.0))
 
 print(leaky_relu.gradient(5.0))
 print(leaky_relu.gradient(-5.0))
+
 
 # ALPHA VALIDATION
 

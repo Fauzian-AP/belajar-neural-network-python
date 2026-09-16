@@ -1,5 +1,6 @@
 from src.core import HeNormal
 
+
 # HE NORMAL
 
 initializer = HeNormal()
@@ -10,6 +11,7 @@ weights = initializer(3)
 
 print(f"Weights : {weights}")
 print(f"Length  : {len(weights)}")
+
 
 # INPUT SIZE VALIDATION
 

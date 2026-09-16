@@ -51,27 +51,27 @@ class Neuron:
     if len(inputs) != self.input_size:
       raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
 
-    """ Neuron: z = ∑(xₙ × wₙ) + b """
+    """ Neuron: z = ∑(xᵢ × wᵢ) + b """
     pre_activation = sum(x * w for x, w in zip(inputs, self.weights)) + self.bias
 
-    # Simpan nilai² yg diperlukan ke Cache
+    # Simpan ke Cache
     self.cache = {
-      "inputs": list(inputs),
-      "pre_activation": pre_activation,
+      'inputs': list(inputs),
+      'pre_activation': pre_activation,
     }
 
     """ Activation: y = f(z) """
     return self.activation(pre_activation)
 
-  # BACKWARD — Menghitung Gradient yaitu nilai yg menunjukkan seberapa besar perubahan Loss
-  def backward(self, gradient_output: float) -> FloatSeq:
+  # BACKWARD — Menghitung Gradient yaitu nilai yg menunjukkan seberapa bsr perubahan Loss
+  def backward(self, gradient_output: float) -> FloatVector:
     # Validasi Cache
     if self.cache is None:
       raise ValueError("Backward tdk dpt dilakukan sebelum Forward.")
 
-    # Ambil data dari Cache
-    inputs = self.cache["inputs"]
-    pre_activation = self.cache["pre_activation"]
+    # Ambil data² dari Cache
+    inputs = self.cache['inputs']
+    pre_activation = self.cache['pre_activation']
 
     """ Activation Gradient: ∂L/∂z = (∂L/∂y) × f'(z) """
     gradient_pre_activation = (
@@ -103,11 +103,11 @@ class Neuron:
 
   # AVERAGE GRADIENT — Menghitung Rata² Gradient Weight & Bias
   def average_gradient(self, batch_size: IntPositive) -> None:
-    # Gradient Weight
+    """ Gradient Weight: ḡwᵢ = gwᵢ / B """
     self.gradient_weights = [
       gradient / batch_size
       for gradient in self.gradient_weights
     ]
 
-    # Gradient Bias
+    """ Gradient Bias: ḡb = gb / B """
     self.gradient_bias /= batch_size

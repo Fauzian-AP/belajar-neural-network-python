@@ -20,4 +20,3 @@ from .optimizer import (
 from .neuron import Neuron
 from .layer import Layer
 from .model import Model
-

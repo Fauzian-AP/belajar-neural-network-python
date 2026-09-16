@@ -36,7 +36,7 @@ class Optimizer(ABC):
 class SGD(Optimizer):
   # CONSTRUCTOR — Initialization
   def __init__(self, learning_rate: FloatPositive) -> None:
-    # Menentukan seberapa besar perubahan Weight & Bias dalam setiap update
+    # Hyper Parameter untuk menentukan seberapa bsr perubahan Weight & Bias dlm tiap Update
     self.learning_rate: FloatPositive = learning_rate
 
   def __call__(
@@ -52,7 +52,7 @@ class SGD(Optimizer):
       for weight, gradient in zip(weights, gradient_weights)
     ]
 
-    """ Update Bisa: b_new = b - η × ∂L/∂b """
+    """ Update Bias: b_new = b - η × ∂L/∂b """
     updated_bias = bias - (self.learning_rate * gradient_bias)
 
     return updated_weights, updated_bias

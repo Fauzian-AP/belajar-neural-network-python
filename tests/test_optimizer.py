@@ -3,6 +3,7 @@ from beartype.roar import BeartypeCallHintParamViolation
 
 from src.core.optimizer import SGD
 
+
 def test_sgd_update() -> None:
   optimizer = SGD(learning_rate=0.1)
 
@@ -23,7 +24,13 @@ def test_sgd_update() -> None:
   expected_bias = 0.07
 
   assert all(
-    math.isclose(actual, expected, rel_tol=1e-9, abs_tol=1e-9)
+    math.isclose(
+      actual,
+      expected,
+      rel_tol=1e-9,
+      abs_tol=1e-9,
+    )
+
     for actual, expected in zip(updated_weights, expected_weights)
   )
 
@@ -35,6 +42,7 @@ def test_sgd_update() -> None:
   )
 
   print("✓ SGD calculation berhasil")
+
 
 def test_learning_rate_validation() -> None:
   try:
@@ -67,12 +75,14 @@ def test_parameter_validation() -> None:
   else:
     raise AssertionError("weights salah tipe seharusnya ditolak")
 
+
 def run_tests() -> None:
   test_sgd_update()
   test_learning_rate_validation()
   test_parameter_validation()
 
   print("\nSemua test berhasil.")
+
 
 if __name__ == "__main__":
   run_tests()

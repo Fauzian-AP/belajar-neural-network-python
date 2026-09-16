@@ -4,10 +4,10 @@ Bagian Pengelolaan Layer, yaitu:
 Membuat & Mengatur sekumpulan Neuron agar dapat memproses Input secara bersamaan dan menghasilkan sekumpulan Output.
 """
 
-from .neuron import Neuron
 from .initializer import Initializer
 from .activation_functions import Activation
 from .optimizer import Optimizer
+from .neuron import Neuron
 from src.utils.custom_types import (
   FloatVector,
   FloatSeq,
@@ -66,7 +66,7 @@ class Layer:
 
   # BACKWARD — Proses Menghitung Gradient tiap Neuron
   def backward(self, gradient_outputs: FloatSeq) -> FloatVector:
-    # Validasi
+    # Validasi Inputs
     if len(gradient_outputs) != self.neuron_count:
       raise ValueError(f"Panjang gradient_outputs ({len(gradient_outputs)}) tdk sesuai dgn neuron_count ({self.neuron_count}).")
 
@@ -78,7 +78,7 @@ class Layer:
       # Gradient yg dikirim Neuron
       neuron_gradient_input = neuron.backward(gradient_output)
 
-      # Gabungkan Gradient dari semua Neuron
+      # Gabungkan Gradient tiap index
       for i, gradient in enumerate(neuron_gradient_input):
         gradient_input[i] += gradient
 
@@ -98,7 +98,7 @@ class Layer:
   def step(self) -> None:
     for neuron in self.neurons:
       # Optimize, lalu kemudian Update Weight & Bias
-      neuron.weights, neuron.bias = self.optimizer.update(
+      neuron.weights, neuron.bias = self.optimizer(
         weights=neuron.weights,
         bias=neuron.bias,
         gradient_weights=neuron.gradient_weights,
