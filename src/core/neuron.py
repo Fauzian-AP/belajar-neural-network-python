@@ -8,7 +8,7 @@ from .initializer import Initializer
 from .activation_functions import Activation
 from src.utils.custom_types import (
   FloatVector,
-  FloatSeq,
+  FloatSequence,
   IntPositive,
   CacheNeuron,
 )
@@ -46,8 +46,8 @@ class Neuron:
     self.cache: CacheNeuron | None = None
 
   # FORWARD — Proses Menghasilkan Prediksi
-  def forward(self, inputs: FloatSeq) -> float:
-    # Validasi Inputs
+  def forward(self, inputs: FloatSequence) -> float:
+    # Validasi Argument
     if len(inputs) != self.input_size:
       raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
 

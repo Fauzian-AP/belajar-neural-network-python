@@ -14,16 +14,14 @@ from typing_extensions import (
 Numeric: TypeAlias = int | float
 
 IntVector: TypeAlias = list[int]
-
 FloatVector: TypeAlias = list[float]
-FloatSeq: TypeAlias = Sequence[float]
 
 # NUMERIC CONSTRAINTS
 
 IntPositive: TypeAlias = Annotated[int, Is[lambda value: value > 0]]
 FloatPositive: TypeAlias = Annotated[float, Is[lambda value: value > 0.0]]
 
-NonEmptyFloatSeq: TypeAlias = Annotated[FloatSeq, Is[lambda value: bool(value)]]
+FloatSequence: TypeAlias = Annotated[Sequence[float], Is[lambda value: bool(value)]]
 
 AlphaRange: TypeAlias = Annotated[float, Is[lambda value: 0.0 < value < 1.0]]
 

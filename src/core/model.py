@@ -6,7 +6,7 @@ from .activation_functions import Activation, Linear
 from .layer import Layer
 from src.utils.custom_types import (
   FloatVector,
-  FloatSeq,
+  FloatSequence,
   IntPositive,
 )
 
@@ -35,15 +35,15 @@ class Model:
     self.layers: list[Layer] = []
 
     # Buat Arsitektur Model
-    for index in range(len(architecture) - 1):
+    for i in range(len(architecture) - 1):
       # Jumlah Input Data pd tiap Layer
-      input_size = architecture[index]
+      input_size = architecture[i]
 
       # Jumlah Neuron pd tiap Layer
-      neuron_count = architecture[index + 1]
+      neuron_count = architecture[i + 1]
 
       # Cek apakah Layer merupakan kategori Output
-      is_output_layer = index == len(architecture) - 2
+      is_output_layer = i == len(architecture) - 2
     
       # Input Layer  ⟶  Activation
       # Hidden Layer  ⟶  Activation
@@ -63,7 +63,7 @@ class Model:
       )
 
   # FORWARD — Proses Menghasilkan Prediksi tiap Layer
-  def forward(self, inputs: FloatSeq) -> FloatVector:
+  def forward(self, inputs: FloatSequence) -> FloatVector:
     # Simpan nilai awal
     output = inputs
 
@@ -74,10 +74,10 @@ class Model:
     return output
 
   # BACKWARD — Proses Menghitung Gradient tiap Layer
-  def backward(self, gradient_outputs: FloatSeq) -> FloatVector:
+  def backward(self, gradient_outputs: FloatSequence) -> FloatVector:
     # Gradient awal
     gradient = gradient_outputs
-    
+
     # Jalankan Method Backward dari Layer terakhir ke awal
     for layer in reversed(self.layers):
       gradient = layer.backward(gradient)

@@ -8,6 +8,8 @@ from src.core import (
 )
 
 
+# HELPER
+
 def create_layer() -> Layer:
   return Layer(
     input_size=3,
@@ -17,6 +19,8 @@ def create_layer() -> Layer:
     optimizer=SGD(learning_rate=0.1),
   )
 
+
+# CONSTRUCTOR
 
 def test_layer_constructor() -> None:
   layer = create_layer()
@@ -29,6 +33,8 @@ def test_layer_constructor() -> None:
   print(f"  Input Size   : {layer.input_size}")
   print(f"  Neuron Count : {layer.neuron_count}")
 
+
+# FORWARD
 
 def test_layer_forward() -> None:
   layer = create_layer()
@@ -50,6 +56,8 @@ def test_layer_forward() -> None:
   print("✓ Forward berhasil")
   print(f"  Outputs : {outputs}")
 
+
+# BACKWARD
 
 def test_layer_backward() -> None:
   layer = create_layer()
@@ -90,6 +98,8 @@ def test_layer_backward() -> None:
   )
 
 
+# RESET GRADIENT
+
 def test_layer_reset_gradient() -> None:
   layer = create_layer()
 
@@ -105,6 +115,8 @@ def test_layer_reset_gradient() -> None:
 
   print("✓ Reset Gradient berhasil")
 
+
+# AVERAGE GRADIENT
 
 def test_layer_average_gradient() -> None:
   layer = create_layer()
@@ -135,6 +147,8 @@ def test_layer_average_gradient() -> None:
 
   print("✓ Average Gradient berhasil")
 
+
+# STEP
 
 def test_layer_step() -> None:
   layer = create_layer()
@@ -175,6 +189,8 @@ def test_layer_step() -> None:
   print("✓ Optimizer Step berhasil")
 
 
+# VALIDATION
+
 def test_backward_before_forward() -> None:
   layer = create_layer()
 
@@ -197,6 +213,18 @@ def test_input_size_validation() -> None:
     raise AssertionError("Input dengan panjang salah seharusnya ditolak")
 
 
+def test_empty_value_input_validation() -> None:
+  layer = create_layer()
+
+  try:
+    layer.forward([])
+  except BeartypeCallHintParamViolation as e:
+    print("✓ Input benar tetapi gk boleh kosong!")
+    print(f"Pesan Error: {e}")
+  else:
+    raise AssertionError("Input benar tetapi kosong seharusnya ditolak")
+
+
 def test_gradient_output_size_validation() -> None:
   layer = create_layer()
 
@@ -208,6 +236,22 @@ def test_gradient_output_size_validation() -> None:
     print("✓ Gradient Output dengan panjang salah ditolak")
   else:
     raise AssertionError("Gradient Output dengan panjang salah seharusnya ditolak")
+
+
+def test_empty_value_gradient_input_validation() -> None:
+  layer = create_layer()
+
+  layer.forward([1.0, 2.0, 3.0])
+
+  try:
+    layer.backward((1.0,))
+  except BeartypeCallHintParamViolation as e:
+    print("✓ Gradient Input benar tetapi gk boleh kosong!")
+    print(f"Pesan Error: {e}")
+  except ValueError as e:
+    print(f"Pesan Error: {e}")
+  else:
+    raise AssertionError("Gradient Input benar tetapi kosong seharusnya ditolak")
 
 
 def test_input_beartype_validation() -> None:
@@ -275,6 +319,8 @@ def test_batch_size_positive_validation() -> None:
     raise AssertionError("batch_size=0 seharusnya ditolak")
 
 
+# MAIN
+
 def run_tests() -> None:
   test_layer_constructor()
   test_layer_forward()
@@ -282,9 +328,12 @@ def run_tests() -> None:
   test_layer_reset_gradient()
   test_layer_average_gradient()
   test_layer_step()
+
   test_backward_before_forward()
   test_input_size_validation()
+  test_empty_value_input_validation()
   test_gradient_output_size_validation()
+  test_empty_value_gradient_input_validation()
   test_input_beartype_validation()
   test_gradient_output_beartype_validation()
   test_input_size_positive_validation()

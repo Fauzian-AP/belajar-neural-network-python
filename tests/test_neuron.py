@@ -1,18 +1,26 @@
 from beartype.roar import BeartypeCallHintParamViolation
 
 from src.core import (
-  ReLU,
+  LeakyReLU,
   HeNormal,
   Neuron,
 )
 
 
-def test_neuron_forward() -> None:
-  neuron = Neuron(
+# HELPER
+
+def create_neuron() -> Neuron:
+  return Neuron(
     input_size=3,
     initializer=HeNormal(),
-    activation=ReLU(),
+    activation=LeakyReLU(alpha=0.01),
   )
+
+
+# FORWARD
+
+def test_neuron_forward() -> None:
+  neuron = create_neuron()
 
   output = neuron.forward([1.0, 2.0, 3.0])
 
@@ -24,12 +32,10 @@ def test_neuron_forward() -> None:
   print(f"  Cache  : {neuron.cache}")
 
 
+# BACKWARD
+
 def test_neuron_backward() -> None:
-  neuron = Neuron(
-    input_size=3,
-    initializer=HeNormal(),
-    activation=ReLU(),
-  )
+  neuron = create_neuron()
 
   # Forward hrs dilakukan sebelum Backward
   neuron.forward([1.0, 2.0, 3.0])
@@ -53,12 +59,10 @@ def test_neuron_backward() -> None:
   print(f"  Gradient Bias    : {neuron.gradient_bias}")
 
 
+# RESET GRADIENT
+
 def test_neuron_reset_gradient() -> None:
-  neuron = Neuron(
-    input_size=3,
-    initializer=HeNormal(),
-    activation=ReLU(),
-  )
+  neuron = create_neuron()
 
   neuron.forward([1.0, 2.0, 3.0])
 
@@ -72,12 +76,10 @@ def test_neuron_reset_gradient() -> None:
   print("✓ Reset Gradient berhasil")
 
 
+# AVERAGE GRADIENT
+
 def test_neuron_average_gradient() -> None:
-  neuron = Neuron(
-    input_size=3,
-    initializer=HeNormal(),
-    activation=ReLU(),
-  )
+  neuron = create_neuron()
 
   neuron.forward([1.0, 2.0, 3.0])
 
@@ -98,12 +100,10 @@ def test_neuron_average_gradient() -> None:
   print("✓ Average Gradient berhasil")
 
 
+# VALIDATION
+
 def test_backward_before_forward() -> None:
-  neuron = Neuron(
-    input_size=3,
-    initializer=HeNormal(),
-    activation=ReLU(),
-  )
+  neuron = create_neuron()
 
   try:
     neuron.backward(1.0)
@@ -114,11 +114,7 @@ def test_backward_before_forward() -> None:
 
 
 def test_input_size_validation() -> None:
-  neuron = Neuron(
-    input_size=3,
-    initializer=HeNormal(),
-    activation=ReLU(),
-  )
+  neuron = create_neuron()
 
   try:
     neuron.forward([1.0, 2.0])
@@ -129,11 +125,7 @@ def test_input_size_validation() -> None:
 
 
 def test_beartype_validation() -> None:
-  neuron = Neuron(
-    input_size=3,
-    initializer=HeNormal(),
-    activation=ReLU(),
-  )
+  neuron = create_neuron()
 
   try:
     neuron.forward(["a", "b", "c"])
@@ -143,18 +135,31 @@ def test_beartype_validation() -> None:
     raise AssertionError("Input salah tipe seharusnya ditolak")
 
 
+def test_empty_value_input_forward() -> None:
+  neuron = create_neuron()
+
+  try:
+    neuron.forward([])
+  except BeartypeCallHintParamViolation:
+    print("✓ Input benar tetapi gk boleh kosong!")
+  else:
+    raise AssertionError("Input benar tetapi kosong seharusnya ditolak")
+
+
 def test_input_size_positive_validation() -> None:
   try:
     Neuron(
       input_size=0,
       initializer=HeNormal(),
-      activation=ReLU(),
+      activation=LeakyReLU(alpha=0.01),
     )
   except BeartypeCallHintParamViolation:
     print("✓ input_size=0 ditolak")
   else:
     raise AssertionError("input_size=0 seharusnya ditolak")
 
+
+# MAIN
 
 def run_tests() -> None:
   test_neuron_forward()
@@ -164,6 +169,7 @@ def run_tests() -> None:
   test_backward_before_forward()
   test_input_size_validation()
   test_beartype_validation()
+  test_empty_value_input_forward()
   test_input_size_positive_validation()
 
   print("\nSemua test Neuron berhasil.")

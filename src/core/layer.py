@@ -10,7 +10,7 @@ from .optimizer import Optimizer
 from .neuron import Neuron
 from src.utils.custom_types import (
   FloatVector,
-  FloatSeq,
+  FloatSequence,
   IntPositive,
 )
 
@@ -51,8 +51,8 @@ class Layer:
     ]
 
   # FORWARD — Proses Menghasilkan Prediksi tiap Neuron
-  def forward(self, inputs: FloatSeq) -> FloatVector:
-    # Validasi Inputs
+  def forward(self, inputs: FloatSequence) -> FloatVector:
+    # Validasi Argument
     if len(inputs) != self.input_size:
       raise ValueError(f"Panjang inputs ({len(inputs)}) tdk sesuai dgn input_size ({self.input_size}).")
 
@@ -65,8 +65,8 @@ class Layer:
     return outputs
 
   # BACKWARD — Proses Menghitung Gradient tiap Neuron
-  def backward(self, gradient_outputs: FloatSeq) -> FloatVector:
-    # Validasi Inputs
+  def backward(self, gradient_outputs: FloatSequence) -> FloatVector:
+    # Validasi Argument
     if len(gradient_outputs) != self.neuron_count:
       raise ValueError(f"Panjang gradient_outputs ({len(gradient_outputs)}) tdk sesuai dgn neuron_count ({self.neuron_count}).")
 

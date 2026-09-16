@@ -1,3 +1,5 @@
+from beartype.roar import BeartypeCallHintParamViolation
+
 from src.core import HeNormal
 
 
@@ -13,17 +15,28 @@ print(f"Weights : {weights}")
 print(f"Length  : {len(weights)}")
 
 
-# INPUT SIZE VALIDATION
+# VALIDATION
 
-print()
+print("=== Wrong Type Validation ===")
+
+try:
+  initializer("Test")
+except BeartypeCallHintParamViolation as e:
+  print(f"Pesan Error : {e}")
+  print()
+
+
 print("=== Input Size Validation ===")
 
 try:
   initializer(0)
-except Exception as error:
-  print(type(error).__name__)
+except BeartypeCallHintParamViolation as e:
+  print(f"Pesan Error : {e}")
+  print()
+
 
 try:
   initializer(-3)
-except Exception as error:
-  print(type(error).__name__)
+except BeartypeCallHintParamViolation as e:
+  print(f"Pesan Error : {e}")
+  print()

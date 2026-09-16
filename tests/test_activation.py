@@ -1,3 +1,5 @@
+from beartype.roar import BeartypeCallHintParamViolation
+
 from src.core import (
   Linear,
   ReLU,
@@ -12,7 +14,6 @@ linear = Linear()
 print("=== Linear ===")
 
 print(linear(5.0))
-
 print(linear.gradient(5.0))
 
 
@@ -44,24 +45,40 @@ print(leaky_relu.gradient(5.0))
 print(leaky_relu.gradient(-5.0))
 
 
-# ALPHA VALIDATION
+# VALIDATION
+
+print()
+print("=== Type Validation ===")
+
+try:
+  relu = ReLU()
+
+  relu("Hello")
+except BeartypeCallHintParamViolation:
+  print("✓ Tipe yg dimasukan ke Argument tdk sesuai")
+
 
 print()
 print("=== Alpha Validation ===")
 
 try:
   LeakyReLU(alpha=0.0)
-except Exception as error:
-  print(type(error).__name__)
+except BeartypeCallHintParamViolation as e:
+  print(f"Pesan Error : {e}")
+  print()
+
 
 try:
-  lr = LeakyReLU(alpha=1.0)
+  activation = LeakyReLU(alpha=1.0)
 
-  print(f"Isi Alpha: {lr.alpha}")
-except Exception as error:
-  print(type(error).__name__)
+  print(f"Isi Alpha: {activation.alpha}")
+except BeartypeCallHintParamViolation as e:
+  print(f"Pesan Error : {e}")
+  print()
+
 
 try:
   LeakyReLU(alpha=1.5)
-except Exception as error:
-  print(type(error).__name__)
+except BeartypeCallHintParamViolation as e:
+  print(f"Pesan Error : {e}")
+  print()
