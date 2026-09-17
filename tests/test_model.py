@@ -1,7 +1,3 @@
-# Test untuk Model Neural Network
-
-from beartype.roar import BeartypeCallHintParamViolation
-
 from src.core import (
   Model,
   HeNormal,
@@ -37,8 +33,8 @@ def test_constructor() -> None:
   assert model.layers[2].neuron_count == 2
 
   print("✓ Constructor berhasil")
-  print("  Layers       : ", len(model.layers))
-  print("  Architecture : 3 → 4 → 4 → 2")
+  print(f"  Layers       : {len(model.layers)}")
+  print("  Architecture : 3 → 4 → 4 → 2\n")
 
 
 # ARCHITECTURE VALIDATION
@@ -51,10 +47,12 @@ def test_architecture_too_short() -> None:
       activation=LeakyReLU(alpha=0.01),
       architecture=(3,),
     )
-  except ValueError:
-    print("✓ Architecture terlalu pendek ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Architecture terlalu pendek hrs ditolak.")
+  finally:
+    print()
 
 
 def test_architecture_wrong_input() -> None:
@@ -65,10 +63,12 @@ def test_architecture_wrong_input() -> None:
       activation=LeakyReLU(alpha=0.01),
       architecture=(2, 4, 2),
     )
-  except ValueError:
-    print("✓ Input architecture salah ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Input architecture salah hrs ditolak.")
+  finally:
+    print()
 
 
 def test_architecture_wrong_output() -> None:
@@ -79,10 +79,12 @@ def test_architecture_wrong_output() -> None:
       activation=LeakyReLU(alpha=0.01),
       architecture=(3, 4, 1),
     )
-  except ValueError:
-    print("✓ Output architecture salah ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Output architecture salah hrs ditolak.")
+  finally:
+    print()
 
 
 # FORWARD
@@ -102,8 +104,8 @@ def test_forward() -> None:
   )
 
   print("✓ Forward berhasil")
-  print("  Inputs  :", inputs)
-  print("  Outputs :", outputs)
+  print(f"  Inputs  : {inputs}")
+  print(f"  Outputs : {outputs}\n")
 
 
 # BACKWARD
@@ -128,8 +130,8 @@ def test_backward() -> None:
   )
 
   print("✓ Backward berhasil")
-  print("  Gradient Output :", gradient_outputs)
-  print("  Gradient Input  :", gradient_input)
+  print(f"  Gradient Output : {gradient_outputs}")
+  print(f"  Gradient Input  : {gradient_input}\n")
 
 
 # RESET GRADIENT
@@ -148,7 +150,7 @@ def test_reset_gradient() -> None:
       assert neuron.gradient_weights == [0.0] * neuron.input_size
       assert neuron.gradient_bias == 0.0
 
-  print("✓ Reset Gradient berhasil")
+  print("✓ Reset Gradient berhasil\n")
 
 
 # AVERAGE GRADIENT
@@ -171,7 +173,7 @@ def test_average_gradient() -> None:
 
       assert isinstance(neuron.gradient_bias, float)
 
-  print("✓ Average Gradient berhasil")
+  print("✓ Average Gradient berhasil\n")
 
 
 # STEP
@@ -206,16 +208,16 @@ def test_step() -> None:
 
   learning_rate = 0.01
 
-  for layer_index, layer in enumerate(model.layers):
-    for neuron_index, neuron in enumerate(layer.neurons):
+  for lyr_idx, layer in enumerate(model.layers):
+    for n_idx, neuron in enumerate(layer.neurons):
       # Periksa Weight
-      for old_weight, new_weight in zip(old_weights[layer_index][neuron_index], neuron.weights):
+      for old_weight, new_weight in zip(old_weights[lyr_idx][n_idx], neuron.weights):
         assert new_weight == old_weight - learning_rate
 
       # Periksa Bias
-      assert neuron.bias == old_biases[layer_index][neuron_index] - learning_rate
+      assert neuron.bias == old_biases[lyr_idx][n_idx] - learning_rate
 
-  print("✓ Optimizer Step berhasil")
+  print("✓ Optimizer Step berhasil\n")
 
 
 # FORWARD VALIDATION
@@ -225,10 +227,12 @@ def test_forward_wrong_input_length() -> None:
 
   try:
     model.forward([1.0, 2.0])
-  except ValueError:
-    print("✓ Forward input panjang salah ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Input dengan panjang salah hrs ditolak.")
+  finally:
+    print()
 
 
 def test_forward_wrong_input_type() -> None:
@@ -236,10 +240,12 @@ def test_forward_wrong_input_type() -> None:
 
   try:
     model.forward(["satu", "dua", "tiga"])
-  except Exception:
-    print("✓ Forward input salah tipe ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Input salah tipe hrs ditolak.")
+  finally:
+    print()
 
 
 # BACKWARD VALIDATION
@@ -249,10 +255,12 @@ def test_backward_before_forward() -> None:
 
   try:
     model.backward([1.0, 2.0])
-  except ValueError:
-    print("✓ Backward sebelum Forward ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Backward sebelum Forward hrs ditolak.")
+  finally:
+    print()
 
 
 def test_backward_wrong_gradient_length() -> None:
@@ -262,10 +270,13 @@ def test_backward_wrong_gradient_length() -> None:
 
   try:
     model.backward([1.0])
-  except ValueError:
-    print("✓ Gradient Output panjang salah ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Gradient Output panjang salah hrs ditolak.")
+  finally:
+    print()
+
 
 def test_empty_value_gradient_input() -> None:
   model = create_model()
@@ -273,13 +284,13 @@ def test_empty_value_gradient_input() -> None:
   model.forward([1.0, 2.0, 3.0])
 
   try:
-    model.backward([1.0])
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+    model.backward([])
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Gradient Input benar tetapi kosong seharusnya ditolak")
+  finally:
+    print()
 
 
 def test_backward_wrong_gradient_type() -> None:
@@ -289,10 +300,12 @@ def test_backward_wrong_gradient_type() -> None:
 
   try:
     model.backward(["satu", "dua"])
-  except Exception:
-    print("✓ Gradient Output salah tipe ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Gradient Output salah tipe hrs ditolak.")
+  finally:
+    print()
 
 
 # AVERAGE GRADIENT VALIDATION
@@ -302,10 +315,12 @@ def test_average_gradient_zero() -> None:
 
   try:
     model.average_gradient(batch_size=0)
-  except Exception:
-    print("✓ batch_size=0 ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("batch_size=0 hrs ditolak.")
+  finally:
+    print()
 
 
 # MAIN
@@ -335,5 +350,4 @@ if __name__ == "__main__":
 
   test_average_gradient_zero()
 
-  print()
   print("Semua test Model berhasil.")

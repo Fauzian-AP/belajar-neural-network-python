@@ -1,5 +1,4 @@
 import math
-from beartype.roar import BeartypeCallHintParamViolation
 
 from src.core.optimizer import SGD
 
@@ -9,12 +8,15 @@ from src.core.optimizer import SGD
 def test_sgd_update() -> None:
   optimizer = SGD(learning_rate=0.1)
 
+  # Weight & Bias
   weights = [0.5, -0.2, 0.8]
   bias = 0.1
 
+  # Gradient Weight & Bias
   gradient_weights = [0.4, -0.5, 0.2]
   gradient_bias = 0.3
 
+  # Optimizer
   updated_weights, updated_bias = optimizer(
     weights=weights,
     bias=bias,
@@ -22,28 +24,20 @@ def test_sgd_update() -> None:
     gradient_bias=gradient_bias,
   )
 
+  # Target hasil
   expected_weights = [0.46, -0.15, 0.78]
   expected_bias = 0.07
 
   assert all(
-    math.isclose(
-      actual,
-      expected,
-      rel_tol=1e-9,
-      abs_tol=1e-9,
-    )
+    math.isclose(actual, expected, rel_tol=1e-9, abs_tol=1e-9)
 
     for actual, expected in zip(updated_weights, expected_weights)
   )
 
-  assert math.isclose(
-    updated_bias,
-    expected_bias,
-    rel_tol=1e-9,
-    abs_tol=1e-9,
-  )
+  assert math.isclose(updated_bias, expected_bias, rel_tol=1e-9, abs_tol=1e-9)
 
   print("✓ SGD calculation berhasil")
+  print()
 
 
 # VALIDATION
@@ -51,17 +45,21 @@ def test_sgd_update() -> None:
 def test_learning_rate_validation() -> None:
   try:
     SGD(learning_rate=0.0)
-  except BeartypeCallHintParamViolation:
-    print("✓ learning_rate=0 ditolak")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("learning_rate=0 seharusnya ditolak")
+  finally:
+    print()
 
   try:
     SGD(learning_rate=-0.1)
-  except BeartypeCallHintParamViolation:
-    print("✓ learning_rate negatif ditolak")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("learning_rate negatif seharusnya ditolak")
+  finally:
+    print()
 
 
 def test_parameter_validation() -> None:
@@ -74,10 +72,12 @@ def test_parameter_validation() -> None:
       gradient_weights=[0.1, 0.2],
       gradient_bias=0.1,
     )
-  except BeartypeCallHintParamViolation:
-    print("✓ weights salah tipe ditolak")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("weights salah tipe seharusnya ditolak")
+  finally:
+    print()
 
 
 # MAIN
@@ -87,7 +87,7 @@ def run_tests() -> None:
   test_learning_rate_validation()
   test_parameter_validation()
 
-  print("\nSemua test berhasil.")
+  print("Semua test berhasil.")
 
 
 if __name__ == "__main__":

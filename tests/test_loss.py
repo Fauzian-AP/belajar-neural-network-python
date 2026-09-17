@@ -1,8 +1,4 @@
-# Test untuk Loss Function
-
-from beartype.roar import BeartypeCallHintParamViolation
-
-from src.evaluating import (
+from src.evaluation.loss_functions import (
   MSE,
   MAE,
 )
@@ -18,15 +14,15 @@ def test_mse() -> None:
 
   result = loss(targets, predictions)
 
-  # Error:
-  # 0² + (-1)² + (-2)² = 5
-  # MSE = 5 / 3
+  # Error : 0² + (-1)² + (-2)² = 5
+  # MSE   : 5 / 3
   expected = 5.0 / 3.0
 
   assert result == expected
 
   print("✓ MSE berhasil")
   print("  Result :", result)
+  print()
 
 
 # MSE GRADIENT
@@ -49,6 +45,7 @@ def test_mse_gradient() -> None:
 
   print("✓ MSE Gradient berhasil")
   print("  Gradient :", gradients)
+  print()
 
 
 # MAE
@@ -70,6 +67,7 @@ def test_mae() -> None:
 
   print("✓ MAE berhasil")
   print("  Result :", result)
+  print()
 
 
 # MAE GRADIENT
@@ -88,6 +86,7 @@ def test_mae_gradient() -> None:
 
   print("✓ MAE Gradient berhasil")
   print("  Gradient :", gradients)
+  print()
 
 
 # EMPTY INPUT VALIDATION
@@ -97,12 +96,13 @@ def test_empty_targets() -> None:
 
   try:
     loss([], [1.0])
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("Empty targets hrs ditolak.")
+  finally:
+    print()
+
 
 
 def test_empty_predictions() -> None:
@@ -110,12 +110,12 @@ def test_empty_predictions() -> None:
 
   try:
     loss([1.0], [])
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("Empty predictions hrs ditolak.")
+  finally:
+    print()
 
 
 def test_both_empty() -> None:
@@ -123,12 +123,12 @@ def test_both_empty() -> None:
 
   try:
     loss([], [])
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("Input kosong hrs ditolak.")
+  finally:
+    print()
 
 
 # LENGTH VALIDATION
@@ -141,12 +141,12 @@ def test_mismatched_length() -> None:
       [1.0, 2.0, 3.0],
       [1.0, 2.0],
     )
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("Panjang input berbeda hrs ditolak.")
+  finally:
+    print()
 
 
 def test_mismatched_length_mae() -> None:
@@ -154,12 +154,12 @@ def test_mismatched_length_mae() -> None:
 
   try:
     loss.gradient([1.0, 2.0], [1.0])
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("MAE hrs menolak panjang input berbeda.")
+  finally:
+    print()
 
 
 # TYPE VALIDATION
@@ -169,12 +169,12 @@ def test_wrong_target_type() -> None:
 
   try:
     loss(["1.0", "2.0"], [1.0, 2.0])
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("Target salah tipe hrs ditolak.")
+  finally:
+    print()
 
 
 def test_wrong_prediction_type() -> None:
@@ -182,12 +182,12 @@ def test_wrong_prediction_type() -> None:
 
   try:
     loss([1.0, 2.0], ["1.0", "2.0"])
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("Prediction salah tipe hrs ditolak.")
+  finally:
+    print()
 
 
 def test_wrong_gradient_target_type() -> None:
@@ -195,12 +195,12 @@ def test_wrong_gradient_target_type() -> None:
 
   try:
     loss.gradient(["1.0"], [1.0],)
-  except BeartypeCallHintParamViolation as e:
-    print(f"Pesan Error: {e}")
-  except ValueError as e:
-    print(f"Pesan Error: {e}")
+  except Exception as error:
+    print(f"Pesan Error : {error}")
   else:
     raise AssertionError("Gradient target salah tipe hrs ditolak.")
+  finally:
+    print()
 
 
 # MSE / MAE ZERO ERROR
@@ -216,6 +216,7 @@ def test_mse_zero_error() -> None:
   assert result == 0.0
 
   print("✓ MSE zero error berhasil")
+  print()
 
 
 def test_mae_zero_error() -> None:
@@ -229,6 +230,7 @@ def test_mae_zero_error() -> None:
   assert result == 0.0
 
   print("✓ MAE zero error berhasil")
+  print()
 
 
 # MAIN

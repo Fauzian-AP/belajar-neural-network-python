@@ -5,7 +5,7 @@ from pydantic import validate_call
 from src.training import Batch
 from src.core import Layer, Model
 
-from src.evaluating import (
+from src.evaluation import (
   Loss,
   MSE,
   calculate_metrics,

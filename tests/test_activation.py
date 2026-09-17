@@ -1,6 +1,4 @@
-from beartype.roar import BeartypeCallHintParamViolation
-
-from src.core import (
+from src.core.activation_functions import (
   Linear,
   ReLU,
   LeakyReLU,
@@ -54,31 +52,34 @@ try:
   relu = ReLU()
 
   relu("Hello")
-except BeartypeCallHintParamViolation:
-  print("✓ Tipe yg dimasukan ke Argument tdk sesuai")
+except Exception as error:
+  print(f"Pesan Error : {error}")
+finally:
+  print()
 
 
-print()
 print("=== Alpha Validation ===")
 
 try:
   LeakyReLU(alpha=0.0)
-except BeartypeCallHintParamViolation as e:
-  print(f"Pesan Error : {e}")
+except Exception as error:
+  print(f"Pesan Error : {error}")
+finally:
   print()
 
 
 try:
   activation = LeakyReLU(alpha=1.0)
-
   print(f"Isi Alpha: {activation.alpha}")
-except BeartypeCallHintParamViolation as e:
-  print(f"Pesan Error : {e}")
+except Exception as error:
+  print(f"Pesan Error : {error}")
+finally:
   print()
 
 
 try:
   LeakyReLU(alpha=1.5)
-except BeartypeCallHintParamViolation as e:
-  print(f"Pesan Error : {e}")
+except Exception as error:
+  print(f"Pesan Error : {error}")
+finally:
   print()

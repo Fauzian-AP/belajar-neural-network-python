@@ -1,6 +1,4 @@
-# Test Metric Evaluation
-
-from src.evaluating.metric_evaluation import (
+from src.evaluation.metric_evaluation import (
   MSE,
   MAE,
   RMSE,
@@ -22,6 +20,7 @@ assert mse == 5.0 / 3.0
 
 print("✓ MSE berhasil")
 print(f"  Result : {mse}")
+print()
 
 
 # TEST MAE
@@ -32,6 +31,7 @@ assert mae == 1.0
 
 print("✓ MAE berhasil")
 print(f"  Result : {mae}")
+print()
 
 
 # TEST RMSE
@@ -42,6 +42,7 @@ assert rmse == (5.0 / 3.0) ** 0.5
 
 print("✓ RMSE berhasil")
 print(f"  Result : {rmse}")
+print()
 
 
 # TEST CALCULATE METRICS
@@ -54,6 +55,7 @@ assert metrics["RMSE"] == rmse
 
 print("✓ Calculate Metrics berhasil")
 print(f"  Metrics : {metrics}")
+print()
 
 
 # TEST EMPTY TARGETS
@@ -62,6 +64,8 @@ try:
   MSE()([], predictions)
 except Exception as error:
   print(f"Pesan Error: {error}")
+finally:
+  print()
 
 
 # TEST EMPTY PREDICTIONS
@@ -70,6 +74,8 @@ try:
   MSE()(targets, [])
 except Exception as error:
   print(f"Pesan Error: {error}")
+finally:
+  print()
 
 
 # TEST LENGTH MISMATCH
@@ -81,6 +87,8 @@ try:
   )
 except ValueError as error:
   print(f"Pesan Error: {error}")
+finally:
+  print()
 
 
 # TEST WRONG TYPE
@@ -92,6 +100,8 @@ try:
   )
 except Exception as error:
   print(f"Pesan Error: {error}")
+finally:
+  print()
 
 
 # TEST ZERO ERROR

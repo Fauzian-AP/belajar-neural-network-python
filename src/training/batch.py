@@ -1,15 +1,15 @@
 """
 Bagian Pengelolaan Batch, yaitu:
 
-Kumpulan data² yg diproses secara bersamaan
+Kumpulan data² yg diproses secara bersamaan.
 """
 
 import math
 import random
 
 from src.utils.custom_types import (
-  FloatPositive,
   IntPositive,
+  FloatPositive,
   Dataset,
   ListDataset,
   DatasetType,
@@ -26,11 +26,11 @@ class Batch:
     self,
     dataset: Dataset,
     training_ratio: FloatPositive,
-    validating_ratio: FloatPositive,
+    validation_ratio: FloatPositive,
     testing_ratio: FloatPositive,
   ) -> DatasetType:
     # Hitung total Rasio
-    total_ratio = training_ratio + validating_ratio + testing_ratio
+    total_ratio = training_ratio + validation_ratio + testing_ratio
 
     # Validasi Total Ratio adalah 1
     if not math.isclose(total_ratio, 1.0):
@@ -45,30 +45,26 @@ class Batch:
     # Hitung total data
     dataset_size = len(shuffle_dataset)
     training_size = int(dataset_size * training_ratio)
-    validating_size = int(dataset_size * validating_ratio)
+    validation_size = int(dataset_size * validation_ratio)
 
     # Tentukan Index
     training_end = training_size
-    validating_end = training_end + validating_size
+    validation_end = training_end + validation_size
 
     # Pisahkan Dataset
     training_data = shuffle_dataset[:training_end]
-    validating_data = shuffle_dataset[training_end:validating_end]
-    testing_data = shuffle_dataset[validating_end:]
+    validation_data = shuffle_dataset[training_end:validation_end]
+    testing_data = shuffle_dataset[validation_end:]
 
     # Kembalikan Dataset yg telah dipisah
     return {
       "training": training_data,
-      "validating": validating_data,
+      "validation": validation_data,
       "testing": testing_data,
     }
 
   # CREATE BATCH — Membagi Dataset menjadi beberapa Mini-Batch
-  def create_batches(
-    self,
-    dataset: Dataset,
-    batch_size: IntPositive,
-  ) -> ListDataset:
+  def create_batches(self, dataset: Dataset, batch_size: IntPositive) -> ListDataset:
     # Salin Dataset agar yg asli tdk berubah
     shuffle_dataset = list(dataset)
 

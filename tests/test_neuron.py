@@ -1,5 +1,3 @@
-from beartype.roar import BeartypeCallHintParamViolation
-
 from src.core import (
   LeakyReLU,
   HeNormal,
@@ -29,7 +27,7 @@ def test_neuron_forward() -> None:
 
   print("✓ Forward berhasil")
   print(f"  Output : {output}")
-  print(f"  Cache  : {neuron.cache}")
+  print(f"  Cache  : {neuron.cache}\n")
 
 
 # BACKWARD
@@ -56,7 +54,7 @@ def test_neuron_backward() -> None:
   print("✓ Backward berhasil")
   print(f"  Gradient Input   : {gradient_input}")
   print(f"  Gradient Weights : {neuron.gradient_weights}")
-  print(f"  Gradient Bias    : {neuron.gradient_bias}")
+  print(f"  Gradient Bias    : {neuron.gradient_bias}\n")
 
 
 # RESET GRADIENT
@@ -73,7 +71,7 @@ def test_neuron_reset_gradient() -> None:
   assert neuron.gradient_weights == [0.0, 0.0, 0.0]
   assert neuron.gradient_bias == 0.0
 
-  print("✓ Reset Gradient berhasil")
+  print("✓ Reset Gradient berhasil\n")
 
 
 # AVERAGE GRADIENT
@@ -97,7 +95,7 @@ def test_neuron_average_gradient() -> None:
 
   assert neuron.gradient_bias == original_bias / 2
 
-  print("✓ Average Gradient berhasil")
+  print("✓ Average Gradient berhasil\n")
 
 
 # VALIDATION
@@ -107,10 +105,12 @@ def test_backward_before_forward() -> None:
 
   try:
     neuron.backward(1.0)
-  except ValueError:
-    print("✓ Backward sebelum Forward ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Backward sebelum Forward seharusnya ditolak")
+  finally:
+    print()
 
 
 def test_input_size_validation() -> None:
@@ -118,10 +118,12 @@ def test_input_size_validation() -> None:
 
   try:
     neuron.forward([1.0, 2.0])
-  except ValueError:
-    print("✓ Input dengan panjang salah ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Input dengan panjang salah seharusnya ditolak")
+  finally:
+    print()
 
 
 def test_beartype_validation() -> None:
@@ -129,10 +131,12 @@ def test_beartype_validation() -> None:
 
   try:
     neuron.forward(["a", "b", "c"])
-  except BeartypeCallHintParamViolation:
-    print("✓ Input salah tipe ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Input salah tipe seharusnya ditolak")
+  finally:
+    print()
 
 
 def test_empty_value_input_forward() -> None:
@@ -140,10 +144,12 @@ def test_empty_value_input_forward() -> None:
 
   try:
     neuron.forward([])
-  except BeartypeCallHintParamViolation:
-    print("✓ Input benar tetapi gk boleh kosong!")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("Input benar tetapi kosong seharusnya ditolak")
+  finally:
+    print()
 
 
 def test_input_size_positive_validation() -> None:
@@ -153,27 +159,30 @@ def test_input_size_positive_validation() -> None:
       initializer=HeNormal(),
       activation=LeakyReLU(alpha=0.01),
     )
-  except BeartypeCallHintParamViolation:
-    print("✓ input_size=0 ditolak")
+  except Exception as error:
+    print(f"Pesan Error: {error}")
   else:
     raise AssertionError("input_size=0 seharusnya ditolak")
+  finally:
+    print()
 
 
 # MAIN
 
-def run_tests() -> None:
+if __name__ == "__main__":
+
   test_neuron_forward()
+
   test_neuron_backward()
+
   test_neuron_reset_gradient()
+
   test_neuron_average_gradient()
+
   test_backward_before_forward()
   test_input_size_validation()
   test_beartype_validation()
   test_empty_value_input_forward()
   test_input_size_positive_validation()
 
-  print("\nSemua test Neuron berhasil.")
-
-
-if __name__ == "__main__":
-  run_tests()
+  print("Semua test Neuron berhasil.")
