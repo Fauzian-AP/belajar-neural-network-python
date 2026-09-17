@@ -18,9 +18,10 @@ from src.utils.custom_types import (
 # ======================
 
 class Loss(ABC):
-  # VALIDATE ARGUMENS — Decorator yg memvalidasi hubungan antara Inputs
+  # VALIDATE ARGUMENS — Decorator yg memvalidasi hubungan antara Argument
   @staticmethod
   def validate_arguments(func: Callable[..., Any]) -> Callable[..., Any]:
+    # Melanjutkan informasi function yg dibungkus
     @wraps(func)
     def wrapper(
       self,
@@ -35,7 +36,7 @@ class Loss(ABC):
 
     return wrapper
 
-  # DUNDER — Menjalankan Method setelah Initialization yaitu menjalankan aktivasi
+  # DUNDER — Menjalankan Method setelah Initialization yaitu menghitung Loss
   @abstractmethod
   def __call__(
     self,
@@ -88,7 +89,7 @@ class MSE(Loss):
     ]
 
 
-# Mean Absolute Error — Menghitung rata² jarak absolut antara Target dgn Prediction sehingga lbh sedikit terpengaruh oleh error yg lbh bsr
+# Mean Absolute Error — Menghitung rata² jarak absolut antara Target dgn Prediction sehingga lbh tahan terhadap Outlier
 
 class MAE(Loss):
   @Loss.validate_arguments
@@ -112,13 +113,7 @@ class MAE(Loss):
     targets: FloatSequence,
     predictions: FloatSequence,
   ) -> FloatVector:
-    """
-    ∂MAE/∂ŷ = {
-      +1, jika ŷ > y
-       0, jika ŷ = y
-      -1, jika ŷ < y
-    }
-    """
+    """ ∂MAE/∂ŷ = sign(ŷ - y) """
     return [
       (
         1.0
@@ -127,5 +122,6 @@ class MAE(Loss):
         if prediction < target
         else 0.0
       )
+
       for target, prediction in zip(targets, predictions)
     ]

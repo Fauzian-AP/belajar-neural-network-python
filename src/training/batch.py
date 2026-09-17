@@ -1,12 +1,15 @@
-# Bagian Pengelolaan Batch yaitu kumpulan² data yg diproses secara bersamaan
+"""
+Bagian Pengelolaan Batch, yaitu:
+
+Kumpulan data² yg diproses secara bersamaan
+"""
 
 import math
 import random
-from pydantic import validate_call
 
 from src.utils.custom_types import (
-  PositiveFloat,
-  PositiveInt,
+  FloatPositive,
+  IntPositive,
   Dataset,
   ListDataset,
   DatasetType,
@@ -19,16 +22,15 @@ class Batch:
     self.random = random.Random(seed)
 
   # SPLIT DATASET — Membagi Dataset menjadi Sesi² seperti Training, Validation, dan Testing
-  @validate_call
   def split_dataset(
     self,
     dataset: Dataset,
-    training_ratio: PositiveFloat,
-    validating_ratio: PositiveFloat,
-    testing_ratio: PositiveFloat,
+    training_ratio: FloatPositive,
+    validating_ratio: FloatPositive,
+    testing_ratio: FloatPositive,
   ) -> DatasetType:
     # Hitung total Rasio
-    total_ratio = (training_ratio + validating_ratio + testing_ratio)
+    total_ratio = training_ratio + validating_ratio + testing_ratio
 
     # Validasi Total Ratio adalah 1
     if not math.isclose(total_ratio, 1.0):
@@ -62,11 +64,10 @@ class Batch:
     }
 
   # CREATE BATCH — Membagi Dataset menjadi beberapa Mini-Batch
-  @validate_call
   def create_batches(
     self,
     dataset: Dataset,
-    batch_size: PositiveInt,
+    batch_size: IntPositive,
   ) -> ListDataset:
     # Salin Dataset agar yg asli tdk berubah
     shuffle_dataset = list(dataset)

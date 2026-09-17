@@ -33,10 +33,7 @@ DatasetType: TypeAlias = dict[str, Dataset]
 
 # EVALUATING TYPES
 
-class Metrics(TypedDict):
-  MSE: float
-  MAE: float
-  RMSE: float
+Metrics: TypeAlias = dict[str, float]
 
 EvaluatingType: TypeAlias = dict[str, Metrics]
 
