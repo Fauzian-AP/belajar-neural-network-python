@@ -4,7 +4,7 @@ import random
 from typing_extensions import Final
 
 from src.core import Model
-from src.data import Preprocessor
+from src.preprocessing import Preprocessor
 from src.training import Batch, Trainer
 from src.visualization import plot_training, plot_evaluating
 from src.utils.custom_types import ScaleType, EvaluatingType, ActivationType

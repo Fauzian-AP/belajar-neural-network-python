@@ -1,18 +1,17 @@
 # Bagian untuk melakukan pelatihan pd Model
 
 import copy
-from pydantic import validate_call
-from src.training import Batch
+
+from .batch import Batch
 from src.core import Layer, Model
 
 from src.evaluation import (
   Loss,
-  MSE,
   calculate_metrics,
 )
 
 from src.utils.custom_types import (
-  PositiveInt,
+  IntPositive,
   Dataset,
   Metrics,
   FitHistory,
@@ -28,17 +27,16 @@ class Trainer:
     loss: Loss,
   ) -> None:
     # Simpan Model
-    self.model = model
+    self.model: Model = model
 
     # Simpan Batch
-    self.batch = batch
+    self.batch: Batch = batch
 
     # Simpan Loss Function
-    self.loss = loss
+    self.loss: Loss = loss
 
   # TRAINING — Melatih Model Selama 1 Epoch
-  @validate_call
-  def training(self, dataset: Dataset, batch_size: PositiveInt) -> Metrics:
+  def training(self, dataset: Dataset, batch_size: IntPositive) -> Metrics:
     # Validasi
     if not dataset:
       raise ValueError("Dataset yg digunakan tdk boleh kosong.")
@@ -69,11 +67,10 @@ class Trainer:
       self.model.reset_gradient()
 
     # Kembalikan hasil Evaluasi Model setelah 1 Epoch
-    return self.evaluating(dataset)
+    return self.evaluation(dataset)
 
-  # EVALUATING — Mengukur Performa Model pd Dataset
-  @validate_call
-  def evaluating(self, dataset: Dataset) -> Metrics:
+  # EVALUATION — Mengukur Performa Model pd Dataset
+  def evaluation(self, dataset: Dataset) -> Metrics:
     # Validasi
     if not dataset:
       raise ValueError("Dataset yg digunakan tdk boleh kosong.")
@@ -83,7 +80,7 @@ class Trainer:
 
     # Total data dari Dataset
     dataset_size = len(dataset)
-    
+
     # Proses tiap Data
     for inputs, targets in dataset:
       # Forward
@@ -115,14 +112,13 @@ class Trainer:
     self.model.layers = copy.deepcopy(best_state)
 
   # FIT — Melakukan Seluruh Proses Model secara keseluruhan
-  @validate_call
   def fit(
     self,
     training_data: Dataset,
-    validating_data: Dataset,
-    epochs: PositiveInt,
-    batch_size: PositiveInt,
-    patience: PositiveInt = 10,
+    validation_data: Dataset,
+    epochs: IntPositive,
+    batch_size: IntPositive,
+    patience: IntPositive = 10,
   ) -> FitResult:
     # Histroy Hasil
     history: FitHistory = {
@@ -136,8 +132,8 @@ class Trainer:
         "RMSE": []
       },
 
-      # Menyimpan Metrics dari Validating
-      "validating_metrics": {
+      # Menyimpan Metrics dari Validation
+      "validation_metrics": {
         "MSE": [],
         "MAE": [],
         "RMSE": []
@@ -145,7 +141,7 @@ class Trainer:
     }
 
     # Data MSE terbaik 
-    best_validating_mse = float("inf")   # Float positif tak terhingga
+    best_validation_mse = float("inf")   # Float positif tak terhingga
 
     # State Model terbaik
     best_model: list[Layer] | None = None
@@ -164,8 +160,8 @@ class Trainer:
       # Training
       training_loss = self.training(training_data, batch_size)
 
-      # Validating
-      validating_loss = self.evaluating(validating_data)
+      # Validation
+      validation_loss = self.evaluation(validation_data)
 
       # Simpan Nomor Epoch
       history["epochs"].append(epoch)
@@ -175,18 +171,18 @@ class Trainer:
       history["training_metrics"]["MAE"].append(training_loss["MAE"])
       history["training_metrics"]["RMSE"].append(training_loss["RMSE"])
 
-      # Simpan metrics Validating
-      history["validating_metrics"]["MSE"].append(validating_loss["MSE"])
-      history["validating_metrics"]["MAE"].append(validating_loss["MAE"])
-      history["validating_metrics"]["RMSE"].append(validating_loss["RMSE"])
+      # Simpan metrics Validation
+      history["validation_metrics"]["MSE"].append(validation_loss["MSE"])
+      history["validation_metrics"]["MAE"].append(validation_loss["MAE"])
+      history["validation_metrics"]["RMSE"].append(validation_loss["RMSE"])
 
-      # Ambil Validating MSE
-      validating_mse = validating_loss["MSE"]
+      # Ambil Validation MSE
+      validation_mse = validation_loss["MSE"]
 
       # Jika Model Membaik
-      if (validating_mse < best_validating_mse):
-        # Simpan Validating MSE yg terbaik
-        best_validating_mse = validating_mse
+      if (validation_mse < best_validation_mse):
+        # Simpan Validation MSE yg terbaik
+        best_validation_mse = validation_mse
 
         # Simpan Model saat ini Ke State
         best_model = self.save_model()
@@ -206,9 +202,9 @@ class Trainer:
         print(f"Training MSE    : {training_loss['MSE']:.18f}")
         print(f"Training MAE    : {training_loss['MAE']:.18f}")
         print(f"Training RMSE   : {training_loss['RMSE']:.18f}")
-        print(f"Validating MSE  : {validating_loss['MSE']:.18f}")
-        print(f"Validating MAE  : {validating_loss['MAE']:.18f}")
-        print(f"Validating RMSE : {validating_loss['RMSE']:.18f}")
+        print(f"Validation MSE  : {validation_loss['MSE']:.18f}")
+        print(f"Validation MAE  : {validation_loss['MAE']:.18f}")
+        print(f"Validation RMSE : {validation_loss['RMSE']:.18f}")
         print(f"Patience        : {patience_counter}/{patience}")
         print()
 
@@ -220,7 +216,7 @@ class Trainer:
         print("=== EARLY STOPPING ===")
         print(f"Epoch               : {last_epoch}")
         print(f"Best Epoch          : {best_epoch}")
-        print(f"Best Validating MSE : {best_validating_mse:.18f}")
+        print(f"Best Validation MSE : {best_validation_mse:.18f}")
         print()
 
         # Hentikan Epoch
@@ -234,5 +230,5 @@ class Trainer:
       "history": history,
       "best_epoch": best_epoch,
       "last_epoch": last_epoch,
-      "best_validating_mse": best_validating_mse,
+      "best_validation_mse": best_validation_mse,
     }

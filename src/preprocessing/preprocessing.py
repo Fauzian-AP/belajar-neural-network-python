@@ -1,24 +1,32 @@
-# Bagian Preprocessing Data sebelum Digunakan oleh Model
+""" Bagian Preprocessing Data sebelum Digunakan oleh Model """
 
-from .normalizer import Normalizer
+from .normalization import (
+  Normalizer,
+  MinMaxNormalizer
+)
+
 from src.utils.custom_types import (
-  ListFloat,
-  SequenceFloat,
+  FloatVector,
+  FloatSequence,
   Dataset,
   DatasetType,
 )
 
 class Preprocessor:
   # CONSTRUCTOR — Initialization
-  def __init__(self) -> None:
+  def __init__(
+    self,
+    input_scaler: Normalizer | None = None,
+    target_scaler: Normalizer | None = None,
+  ) -> None:
     # Simpan Normalizer untuk Input
-    self.input_scaler = Normalizer()
+    self.input_scaler: Normalizer = input_scaler or MinMaxNormalizer()
 
     # Simpan Normalizer untuk Target
-    self.target_scaler = Normalizer()
+    self.target_scaler: Normalizer = target_scaler or MinMaxNormalizer()
 
   # NORMALIZE INPUTS — Normalisasi Kumpulan Nilai Input
-  def normalize_inputs(self, values: SequenceFloat) -> ListFloat:
+  def normalize_inputs(self, values: FloatSequence) -> FloatVector:
     return [
       # Normalisasikan tiap nilai Input Scaler
       self.input_scaler.normalize(value)
@@ -28,7 +36,7 @@ class Preprocessor:
     ]
 
   # NORMALIZE TARGET — Normalisasi Kumpulan Nilai Target
-  def normalize_targets(self, values: SequenceFloat) -> ListFloat:
+  def normalize_targets(self, values: FloatSequence) -> FloatVector:
     return [
       # Normalisasikan tiap nilai Target Scaler
       self.target_scaler.normalize(value)
@@ -70,7 +78,7 @@ class Preprocessor:
     return normalized_datasets
 
   # DENORMALIZE INPUTS — Nengembalikan Kumpulan Nilai Input ke Skala Asli
-  def denormalize_inputs(self, values: SequenceFloat) -> ListFloat:
+  def denormalize_inputs(self, values: FloatSequence) -> FloatVector:
     return [
       # Denormalisasikan tiap nilai Input Scaler
       self.input_scaler.denormalize(value)
@@ -80,7 +88,7 @@ class Preprocessor:
     ]
   
   # DENORMALIZE TARGETS — Nengembalikan Kumpulan Nilai Target ke Skala Asli
-  def denormalize_targets(self, values: SequenceFloat) -> ListFloat:
+  def denormalize_targets(self, values: FloatSequence) -> FloatVector:
     return [
       # Denormalisasikan tiap nilai Target Scaler
       self.target_scaler.denormalize(value)
@@ -124,10 +132,10 @@ class Preprocessor:
   # FIT DATASET — Mencari nilai minimum & maximum dari training data
   def fit_dataset(self, dataset: Dataset) -> None:
     # Wadah seluruh nilai Input
-    input_values: ListFloat = []
+    input_values: FloatVector = []
 
     # Wadah seluruh nilai Target
-    target_values: ListFloat = []
+    target_values: FloatVector = []
 
     # Ambil Data dari Dataset
     for inputs, targets in dataset:
