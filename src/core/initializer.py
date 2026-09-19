@@ -1,14 +1,17 @@
 """
-Bagian Pengelolaan Initialization, yaitu:
+Bagian Pengelolaan 'Initialization', yaitu:
 
 Menentukan Metode dan menghasilkan nilai awal Weight yg akan digunakan oleh Neuron.
 """
 
-import math
-import random
+import numpy as np
+
 from abc import ABC, abstractmethod
 
-from src.utils.custom_types import FloatVector, IntPositive
+from src.utils.custom_types import (
+  FloatArray,
+  IntPositive,
+)
 
 # =============================
 # === BLUEPRINT INITIALIZER ===
@@ -17,26 +20,37 @@ from src.utils.custom_types import FloatVector, IntPositive
 class Initializer(ABC):
   # DUNDER — Menjalankan Method setelah Initialization yaitu Generate Weight menggunakan Initializer
   @abstractmethod
-  def __call__(self, input_size: IntPositive) -> FloatVector:
+  def __call__(self, input_size: IntPositive) -> FloatArray:
+    # Lempar Error
     raise NotImplementedError("Sub Class hrs mengimplementasi method __call__().")
 
 # ===========================
 # === METODE² INITIALIZER ===
 # ===========================
 
-# He/Kaiming Normal — Menentukan nilai Weight awal menggunakan Distribusi Gaussian berbentuk Lonceng
+# He/Kaiming Normal — Menentukan nilai Weight awal menggunakan Distribusi Gaussian.
 
 class HeNormal(Initializer):
-  def __call__(self, input_size: IntPositive) -> FloatVector:
-    """ σ = √(2 / nᵢₙ) """
+  def __call__(
+    self,
+    shape: tuple[IntPositive, ...],   # Pola: (Jumlah_input, jumlah_neuron)
+  ) -> FloatArray:
+    """
+    σ = √(2 / fan_in)
+    """
 
-    # Menghitung Standar Deviasi
-    stddev = math.sqrt(2.0 / input_size)
+    # Validasi Argument
+    if len(shape) < 2:
+      raise ValueError("Shape Weight minimal hrs memiliki 2 dimensi.")
 
-    return [
-      # Generate Float Random antara skala Gaussian dgn Mean 0.0 dan Standar Deviasi
-      random.gauss(0.0, stddev)
+    # Ambil jumlah Input yg msk ke tiap Neuron 
+    fan_in = shape[0]
 
-      # Berdasarkan jumlah Input
-      for _ in range(input_size)
-    ]
+    # Menghitung Standard Deviation
+    stddev = np.sqrt(2.0 / fan_in)
+
+    # Gunakan Generator Random
+    rng = np.random.default_rng()
+
+    # Generate Weight berupa skala Gaussian dgn Mean 0.0 dan Standar Deviasi
+    return rng.normal(loc=0.0, scale=stddev, size=shape)

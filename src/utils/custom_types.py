@@ -1,20 +1,23 @@
-# Bagian Pengelolaan Type Code pd Project Neural Network
+""" Bagian Pengelolaan Type Code pd Project Neural Network """
 
-from beartype.vale import Is
 from enum import Enum
-from typing_extensions import (
+from typing import (
   Annotated,
+  NamedTuple,
   Sequence,
   TypedDict,
   TypeAlias,
 )
 
-# BASIC TYPES
+import numpy as np
+from beartype.vale import Is
 
-Numeric: TypeAlias = int | float
+
+# BASIC TYPES
 
 IntVector: TypeAlias = list[int]
 FloatVector: TypeAlias = list[float]
+
 
 # NUMERIC CONSTRAINTS
 
@@ -23,13 +26,21 @@ FloatPositive: TypeAlias = Annotated[float, Is[lambda value: value > 0.0]]
 
 FloatSequence: TypeAlias = Annotated[Sequence[float], Is[lambda value: bool(value)]]
 
+FloatArray: TypeAlias = Annotated[np.ndarray, Is[lambda arr: arr.dtype.type == np.float64]]
+
 AlphaRange: TypeAlias = Annotated[float, Is[lambda value: 0.0 < value < 1.0]]
+
 
 # DATASET TYPES
 
-Dataset: TypeAlias = list[tuple[FloatVector, FloatVector]]
-ListDataset: TypeAlias = list[Dataset]
-DatasetType: TypeAlias = dict[str, Dataset]
+class DataSample(NamedTuple):
+  inputs: FloatVector   # Data Input
+  targets: FloatVector   # Data Target / Ground Truth
+
+Dataset: TypeAlias = list[DataSample]   # Kumpulan Sample
+DatasetList: TypeAlias = list[Dataset]   # Kumpulan Dataset
+DatasetType: TypeAlias = dict[str, Dataset]   # Dataset berdasarkan Key
+
 
 # EVALUATING TYPES
 
@@ -37,11 +48,13 @@ Metrics: TypeAlias = dict[str, float]
 
 EvaluatingType: TypeAlias = dict[str, Metrics]
 
+
 # CACHE NEURON TYPE
 
 class CacheNeuron(TypedDict):
   inputs: FloatVector
   pre_activation: float
+
 
 # TRAINING HISTORY TYPES
 
@@ -61,14 +74,10 @@ class FitResult(TypedDict):
   last_epoch: int
   best_validating_mse: float
 
-# Enum Jenis² Activation
 
-class ActivationType(str, Enum):
-  NONE = "none"
-  RELU = "ReLU"
-  LEAKY_RELU = "Leaky_ReLU"
+# ENUM TYPES
 
-# Enum Jenis² Bentuk Data
+# Jenis² Bentuk Data
 
 class ScaleType(str, Enum):
   ORIGINAL = "original"
