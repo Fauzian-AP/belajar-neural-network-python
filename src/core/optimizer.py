@@ -1,5 +1,5 @@
 """
-Bagian pengelolaan Optimalisasi yaitu:
+Bagian pengelolaan 'Optimizer', yaitu:
 
 Menyesuaikan Weight & Bias secara berulang-ulang untuk meminimalkan nilai Loss berdasarkan Gradient.
 """
@@ -7,7 +7,7 @@ Menyesuaikan Weight & Bias secara berulang-ulang untuk meminimalkan nilai Loss b
 from abc import ABC, abstractmethod
 
 from src.utils.custom_types import (
-  FloatVector,
+  FloatArray,
   FloatPositive,
 )
 
@@ -20,11 +20,12 @@ class Optimizer(ABC):
   @abstractmethod
   def __call__(
     self,
-    weights: FloatVector,
-    bias: float,
-    gradient_weights: FloatVector,
-    gradient_bias: float,
-  ) -> tuple[FloatVector, float]:
+    W: FloatArray,
+    b: FloatArray,
+    gradient_W: FloatArray,
+    gradient_b: FloatArray,
+  ) -> tuple[FloatArray, FloatArray]:
+    # Lempar Error
     raise NotImplementedError("Sub Class hrs mengimplementasikan method __call__().")
 
 # =========================
@@ -41,18 +42,19 @@ class SGD(Optimizer):
 
   def __call__(
     self,
-    weights: FloatVector,
-    bias: float,
-    gradient_weights: FloatVector,
-    gradient_bias: float,
-  ) -> tuple[FloatVector, float]:
-    """ Update Weights: w_new = w - η × ∂L/∂w """
-    updated_weights = [
-      weight - (self.learning_rate * gradient)
-      for weight, gradient in zip(weights, gradient_weights)
-    ]
+    W: FloatArray,
+    b: FloatArray,
+    gradient_W: FloatArray,
+    gradient_b: FloatArray,
+  ) -> tuple[FloatArray, FloatArray]:
+    """
+    Update Weight: w_new = w - η × ∂L/∂w
+    """
+    updated_W = W - (self.learning_rate * gradient_W)
 
-    """ Update Bias: b_new = b - η × ∂L/∂b """
-    updated_bias = bias - (self.learning_rate * gradient_bias)
+    """
+    Update Bias: b_new = b - η × ∂L/∂b
+    """
+    updated_b = b - (self.learning_rate * gradient_b)
 
-    return updated_weights, updated_bias
+    return (updated_W, updated_b)

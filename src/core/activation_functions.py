@@ -91,12 +91,12 @@ class LeakyReLU(Activation):
   # CONSTRUCTOR — Initialization
   def __init__(self, alpha: AlphaRange = 0.01) -> None:
     # Nilai Alpha menentukan seberapa bsr nilai negatif yg tetap dpt dilewati
-    self.__alpha: AlphaRange = alpha
+    self._alpha: AlphaRange = alpha
 
   # ALPHA — Getter untuk mendapatkan nilai Alpha
   @property
   def alpha(self) -> float:
-    return self.__alpha
+    return self._alpha
 
   def __call__(
     self,
@@ -109,7 +109,7 @@ class LeakyReLU(Activation):
     return np.where(
       pre_activation > 0.0,
       pre_activation,
-      self.__alpha * pre_activation,
+      self._alpha * pre_activation,
     )
 
   def gradient(
@@ -120,4 +120,4 @@ class LeakyReLU(Activation):
     f'(z) = { 1, jika z > 0
             { α, jika z ⩽ 0
     """
-    return np.where(pre_activation > 0.0, 1.0, self.__alpha)
+    return np.where(pre_activation > 0.0, 1.0, self._alpha)

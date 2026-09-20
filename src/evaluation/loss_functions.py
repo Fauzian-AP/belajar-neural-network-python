@@ -4,14 +4,18 @@ Bagian Pengelolaan Loss Function, yaitu:
 Angka yg digunakan untuk mengukur seberapa Error (salah) yg dihasilkan pd sebuah Prediksi Model.
 """
 
+import numpy as np
+
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing_extensions import Any, Callable
+from typing import Any, Callable, ParamSpec, TypeVar
 
 from src.utils.custom_types import (
-  FloatVector,
-  FloatSequence,
+  FloatArray,
 )
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 # ======================
 # === BLUEPRINT LOSS ===
@@ -20,26 +24,46 @@ from src.utils.custom_types import (
 class Loss(ABC):
   # VALIDATE ARGUMENS — Decorator yg memvalidasi hubungan antara Argument
   @staticmethod
-  def validate_arguments(func: Callable[..., Any]) -> Callable[..., Any]:
-    # Melanjutkan informasi function yg dibungkus
+  def validate_arguments(func: Callable[P, R]) -> Callable[P, R]:
+    # Membungkus Function asli dgn proses tambahan
     @wraps(func)
-    def wrapper(self, targets: FloatSequence, predictions: FloatSequence) -> Any:
-      # Validasi panjang input
-      if len(targets) != len(predictions):
-        raise ValueError(f"Panjang targets ({len(targets)}) dgn predictions ({len(predictions)}) tdk cocok.")
+    def wrapper(
+      self: Any,
+      targets: FloatArray,
+      predictions: FloatArray
+    ) -> R:
+      # Validasi Shape Argument
+      if targets.shape != predictions.shape:
+        # Lempar Error
+        raise ValueError(
+          f"Shape targets ({targets.shape}) dgn"
+          f"Shape predictions ({predictions.shape}) tdk cocok."
+        )
 
+      # Jalankan Function asli setelah validasi berhasil
       return func(self, targets, predictions)
 
+    # Kembalikan Function yg sdh dibungkus validasi
     return wrapper
 
-  # DUNDER — Menjalankan Method setelah Initialization yaitu menghitung Loss
+  # DUNDER — Menghitung Loss setelah Initialization
   @abstractmethod
-  def __call__(self, targets: FloatSequence, predictions: FloatSequence) -> float:
+  def __call__(
+    self, 
+    targets: FloatArray, 
+    predictions: FloatArray,
+  ) -> float:
+    # Lempar Error
     raise NotImplementedError("Sub Class hrs mengimplementasikan method __call__().")
 
   # GRADIENT — Menghitung Loss pd Gradient
   @abstractmethod
-  def gradient(self, targets: FloatSequence, predictions: FloatSequence) -> FloatVector:
+  def gradient(
+    self, 
+    targets: FloatArray, 
+    predictions: FloatArray,
+  ) -> FloatArray:
+    # Lempar Error
     raise NotImplementedError("Sub Class hrs mengimplementasikan method gradient().")
 
 # ====================
@@ -50,50 +74,35 @@ class Loss(ABC):
 
 class MSE(Loss):
   @Loss.validate_arguments
-  def __call__(self, targets: FloatSequence, predictions: FloatSequence) -> float:  
+  def __call__(self, targets: FloatArray, predictions: FloatArray) -> float:  
     """ MSE = (1/n) × Σ(y - ŷ)² """
-    total = sum(
-      (target - prediction) ** 2
-      for target, prediction in zip(targets, predictions)
-    )
 
-    return total / len(targets)
+    errors = targets - predictions
+
+    return float(np.mean(errors ** 2))
 
   @Loss.validate_arguments
-  def gradient(self, targets: FloatSequence, predictions: FloatSequence) -> FloatVector:
-    """ ∂MSE/∂ŷ = (2/n) × (ŷ - y) """
-    return [
-      2.0 * (prediction - target) / len(targets)
-
-      for target, prediction in zip(targets, predictions)
-    ]
+  def gradient(self, targets: FloatArray, predictions: FloatArray) -> FloatArray:
+    """
+    ∂MSE/∂ŷ = (2/n) × (ŷ - y)
+    """
+    return 2.0 * (predictions - targets) / targets.size
 
 
 # Mean Absolute Error — Menghitung rata² jarak absolut antara Target dgn Prediction sehingga lbh tahan terhadap Outlier
 
 class MAE(Loss):
   @Loss.validate_arguments
-  def __call__(self, targets: FloatSequence, predictions: FloatSequence) -> float:  
+  def __call__(self, targets: FloatArray, predictions: FloatArray) -> float:  
     """ MAE = (1/n) × Σ|y - ŷ| """
-    total_error = sum(
-      abs(target - prediction)
 
-      for target, prediction in zip(targets, predictions)
-    )
-  
-    return total_error / len(targets)
+    errors = targets - predictions
+
+    return float(np.abs(errors).mean())
 
   @Loss.validate_arguments
-  def gradient(self, targets: FloatSequence, predictions: FloatSequence) -> FloatVector:
-    """ ∂MAE/∂ŷ = sign(ŷ - y) """
-    return [
-      (
-        1.0
-        if prediction > target
-        else -1.0
-        if prediction < target
-        else 0.0
-      )
-
-      for target, prediction in zip(targets, predictions)
-    ]
+  def gradient(self, targets: FloatArray, predictions: FloatArray) -> FloatArray:
+    """
+    ∂MAE/∂ŷ = sign(ŷ - y) / n
+    """
+    return np.sign(predictions - targets) / targets.size

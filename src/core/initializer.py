@@ -18,9 +18,12 @@ from src.utils.custom_types import (
 # =============================
 
 class Initializer(ABC):
-  # DUNDER — Menjalankan Method setelah Initialization yaitu Generate Weight menggunakan Initializer
+  # DUNDER — Generate Weights setelah Initialization
   @abstractmethod
-  def __call__(self, input_size: IntPositive) -> FloatArray:
+  def __call__(
+    self,
+    shape: tuple[IntPositive, ...],   # Pola: (Jumlah_input, jumlah_neuron)
+  ) -> FloatArray:
     # Lempar Error
     raise NotImplementedError("Sub Class hrs mengimplementasi method __call__().")
 
@@ -33,7 +36,7 @@ class Initializer(ABC):
 class HeNormal(Initializer):
   def __call__(
     self,
-    shape: tuple[IntPositive, ...],   # Pola: (Jumlah_input, jumlah_neuron)
+    shape: tuple[IntPositive, ...],
   ) -> FloatArray:
     """
     σ = √(2 / fan_in)

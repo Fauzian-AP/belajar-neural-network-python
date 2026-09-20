@@ -12,10 +12,7 @@ initializer = HeNormal()
 input_size = 3
 neuron_count = 4
 
-shape = (
-  input_size,
-  neuron_count,
-)
+shape = (input_size, neuron_count)
 
 weights = initializer(shape)
 
@@ -32,9 +29,9 @@ assert isinstance(weights, np.ndarray)
 assert weights.shape == (input_size, neuron_count)
 assert weights.dtype == np.float64
 
-print("✓ Output berupa NumPy ndarray")
-print("✓ Shape sesuai")
-print("✓ Dtype float64\n")
+print(f"✓ Output berupa NumPy {type(weights)}")
+print(f"✓ Shape sesuai: {weights.shape}")
+print(f"✓ Dtype {np.float64}\n")
 
 
 # MATRIX DIMENSION
