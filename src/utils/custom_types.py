@@ -1,84 +1,198 @@
-""" Bagian Pengelolaan Type Code pd Project Neural Network """
-
-from enum import Enum
-from typing import (
-  Annotated,
-  NamedTuple,
-  Sequence,
-  TypedDict,
-  TypeAlias,
-)
+"""Bagian Pengelolaan Type Code pd Project Neural Network"""
 
 import numpy as np
-from beartype.vale import Is
+
+from numpy.typing import NDArray
+from enum import Enum
+
+from typing import (
+  Any,
+  Annotated,
+  Literal,
+  TypeAlias,
+  TypedDict,
+)
+
+from pydantic import (
+  StrictInt,
+  StrictFloat,
+  StrictBool,
+  BaseModel,
+  BeforeValidator,
+  ConfigDict,
+  Field,
+)
 
 
-# BASIC TYPES
+# ===================
+# === BASIC TYPES ===
+# ===================
 
-IntVector: TypeAlias = list[int]
-FloatVector: TypeAlias = list[float]
+Int: TypeAlias = StrictInt
+Float: TypeAlias = StrictFloat
+Bool: TypeAlias = StrictBool
 
-
-# NUMERIC CONSTRAINTS
-
-IntPositive: TypeAlias = Annotated[int, Is[lambda value: value > 0]]
-FloatPositive: TypeAlias = Annotated[float, Is[lambda value: value > 0.0]]
-
-FloatSequence: TypeAlias = Annotated[Sequence[float], Is[lambda value: bool(value)]]
-
-FloatArray: TypeAlias = Annotated[np.ndarray, Is[lambda arr: arr.dtype.type == np.float64]]
-
-AlphaRange: TypeAlias = Annotated[float, Is[lambda value: 0.0 < value < 1.0]]
+IntList: TypeAlias = list[int]
+FloatList: TypeAlias = list[float]
 
 
-# DATASET TYPES
+# =============================
+# === NUMPY ARRAY VALIDATOR ===
+# =============================
 
-class DataSample(NamedTuple):
-  inputs: FloatVector   # Data Input
-  targets: FloatVector   # Data Target / Ground Truth
+def _validate_vector(value: Any) -> NDArray[np.float64]:
+  # Konversi menjadi NumPy Array float64
+  array = np.asarray(value, dtype=np.float64)
 
-Dataset: TypeAlias = list[DataSample]   # Kumpulan Sample
-DatasetList: TypeAlias = list[Dataset]   # Kumpulan Dataset
-DatasetType: TypeAlias = dict[str, Dataset]   # Dataset berdasarkan Key
+  # Vector hrs 1D
+  if array.ndim != 1:
+    # Bangkitkan
+    raise ValueError(f"Dimensi Vector hrs 1D, sedangkan pd value {array.ndim}D.")
 
-
-# EVALUATING TYPES
-
-Metrics: TypeAlias = dict[str, float]
-
-EvaluatingType: TypeAlias = dict[str, Metrics]
+  return array
 
 
-# CACHE NEURON TYPE
+def _validate_matrix(value: Any) -> NDArray[np.float64]:
+  # Konversi menjadi NumPy Array float64
+  array = np.asarray(value, dtype=np.float64)
+
+  # Matrix harus 2D
+  if array.ndim != 2:
+    # Bangkitkan Error
+    raise ValueError(f"Dimensi Matrix hrs 2D, sedangkan pd value {array.ndim}D.")
+
+  return array
+
+
+def _validate_array(value: Any) -> NDArray[np.float64]:
+  # Konversi menjadi NumPy Array float64
+  array = np.asarray(value, dtype=np.float64)
+
+  # Array hanya boleh 1D atau 2D
+  if array.ndim not in (1, 2):
+    # Bangkitkan Error
+    raise ValueError(f"Dimensi Array hrs 1D atau 2D, sedangkan pd value {array.ndim}D.")
+
+  return array
+
+
+# ===================
+# === NUMPY TYPES ===
+# ===================
+
+FloatVector: TypeAlias = Annotated[NDArray[np.float64], BeforeValidator(_validate_vector)]
+FloatMatrix: TypeAlias = Annotated[NDArray[np.float64], BeforeValidator(_validate_matrix)]
+FloatArray: TypeAlias = Annotated[NDArray[np.float64], BeforeValidator(_validate_array)]
+
+
+# ===========================
+# === NUMERIC CONSTRAINTS ===
+# ===========================
+
+IntPositive: TypeAlias = Annotated[Int, Field(gt=0,)]
+FloatPositive: TypeAlias = Annotated[Float, Field(gt=0.0)]
+AlphaRange: TypeAlias = Annotated[Float, Field(gt=0.0, lt=1.0,)]
+
+
+# ===================
+# === DATA SAMPLE ===
+# ===================
+
+class DataSample(BaseModel):
+  # NumPy Array merupakan Arbitrary Type
+  model_config = ConfigDict(arbitrary_types_allowed=True)
+
+  # Input Features
+  inputs: FloatVector
+
+  # Target / Expected Output
+  targets: FloatVector
+
+
+# ===============
+# === DATASET ===
+# ===============
+
+DatasetName: TypeAlias = Literal[
+  "training",
+  "validation",
+  "testing",
+  "generalization",
+]
+
+
+Dataset: TypeAlias = list[DataSample]
+
+DatasetList: TypeAlias = list[Dataset]
+
+DatasetType: TypeAlias = dict[DatasetName, Dataset]
+
+
+# ==================
+# === EVALUATING ===
+# ==================
+
+MetricsName: TypeAlias = Literal["MSE", "MAE", "RMSE"]
+
+Metrics: TypeAlias = dict[MetricsName, Float]
+
+EvaluatingType: TypeAlias = dict[DatasetName, Metrics]
+
+
+# =================================================================
+# === CACHE NEURON =================================================
+# =================================================================
 
 class CacheNeuron(TypedDict):
+
+  # Input yg digunakan ketika Forward
   inputs: FloatVector
-  pre_activation: float
+
+  # Nilai sebelum Activation Function
+  pre_activation: Float
 
 
-# TRAINING HISTORY TYPES
+# ========================
+# === TRAINING HISTORY ===
+# ========================
 
 class MetricsHistory(TypedDict):
   MSE: FloatVector
   MAE: FloatVector
   RMSE: FloatVector
 
+
 class FitHistory(TypedDict):
-  epochs: IntVector
+  # Nomor Epoch
+  epochs: IntList
+
+  # Metrics Training
   training_metrics: MetricsHistory
+
+  # Metrics Validation
   validating_metrics: MetricsHistory
 
+
 class FitResult(TypedDict):
+  # Seluruh History Training
   history: FitHistory
+
+  # Epoch dengan Validation MSE terbaik
   best_epoch: int
+
+  # Epoch terakhir yg dijalankan
   last_epoch: int
+
+  # Validation MSE terbaik
   best_validating_mse: float
 
 
-# ENUM TYPES
-
-# Jenis² Bentuk Data
+# =================================================================
+# === ENUM TYPES ==================================================
+# =================================================================
 
 class ScaleType(str, Enum):
+
   ORIGINAL = "original"
+
   NORMALIZE = "normalize"
