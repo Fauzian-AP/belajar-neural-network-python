@@ -1,21 +1,6 @@
-"""
-Test Runtime Validation.
-
-Menguji:
-
-1. Typing Manual
-2. Custom Type
-3. Constraint
-4. NumPy Type
-5. DataSample
-6. Function Validation
-7. Method Validation
-8. Return Validation
-"""
-
 import numpy as np
 
-from src.validation import (
+from src.validation.runtime import (
   RuntimeFunctionError,
   RuntimeMethodError,
   runtime_function,

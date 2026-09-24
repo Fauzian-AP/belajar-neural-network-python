@@ -1,32 +1,102 @@
 """
-Bagian Pengelolaan Runtime Validation pd Project Neural Network.
+Bagian Pengelolaan Runtime Validation pada Project Neural Network.
 
 Menyediakan Runtime Validation untuk:
 
 1. Function
 2. Method
 
-Pydantic digunakan sbg Engine Validation.
+Pydantic digunakan sebagai Engine Validation.
 
-Module ini jg mengubah ValidationError menjadi Error Message yg lbh spesifik dan mdh dibaca.
+Module ini juga mengubah ValidationError menjadi Error Message yang lebih spesifik dan mudah dibaca.
+
+
+=======================
+=== CARA PENGGUNAAN ===
+=======================
+
+1. Validasi Function
+
+    @runtime_function()
+    def add(a: int, b: int) -> int:
+      return a + b
+
+    add(1, 2)        # OK
+    add(1, "abc")    # RuntimeFunctionError (Argument "b" tidak valid)
+
+
+2. Validasi Method
+
+    class Layer:
+      @runtime_method()
+      def forward(self, inputs: NDArray[np.float64]) -> NDArray[np.float64]:
+        return inputs * 2
+
+    Layer().forward(np.ones(3))     # OK
+    Layer().forward([1.0, 2.0])     # RuntimeMethodError
+
+
+3. Mode Strict (tanpa konversi tipe otomatis)
+
+    @runtime_function(strict=True)
+    def square(x: int) -> int:
+      return x * x
+
+    square(3)      # OK
+    square("3")    # RuntimeFunctionError (di mode biasa "3" akan dikonversi)
+
+
+4. Menangkap Error
+
+    try:
+      add(1, "abc")
+    except RuntimeValidationError as error:   # induk dari Function & Method
+      print(error)
+
+
+ATURAN PENTING:
+
+- Urutan Decorator untuk classmethod / staticmethod:
+
+    @classmethod
+    @runtime_method()          # Decorator runtime harus DI BAWAH classmethod
+    def build(cls, size: int) -> "Layer": ...
+
+- Semua Type Annotation harus sudah bisa di-resolve saat Decorator dipasang (get_type_hints dipanggil saat itu).
+  Forward Reference ke Class yang sedang didefinisikan (mis. `-> "Layer"` di dalam Class Layer sendiri) akan menimbulkan NameError.
+
+- Belum mendukung `async def` (Return yang divalidasi adalah coroutine-nya, bukan hasil akhirnya).
+
+
+=====================
+=== STRUKTUR FILE ===
+=====================
+
+1. Type Variable & Constant
+2. Exception              -> RuntimeValidationError dan turunannya
+3. ErrorFormatter         -> Class untuk membuat pesan Error yang rapi
+4. Adapter Helper         -> Membuat TypeAdapter untuk validasi Return
+5. RuntimeValidator       -> Class Decorator (mesin utama)
+6. Public API             -> runtime_function() dan runtime_method()
 """
 
-import numpy as np
 
+from collections.abc import Callable
+from dataclasses import dataclass, is_dataclass
 from functools import wraps
 from inspect import signature
-from pydantic_core import ErrorDetails
-from numpy.typing import NDArray
 from typing import (
   Any,
   Final,
-  Callable,
-  TypeGuard,
   TypeVar,
   cast,
   get_type_hints,
   is_typeddict,
 )
+
+import numpy as np
+
+from numpy.typing import NDArray
 
 from pydantic import (
   BaseModel,
@@ -36,10 +106,15 @@ from pydantic import (
   validate_call,
 )
 
+from pydantic_core import ErrorDetails
+
 
 # ======================
 # === TYPE VARIABLES ===
 # ======================
+
+# F mewakili "Function apa pun". 
+# Dgn TypeVar, Decorator mengembalikan tipe yg SAMA dgn Function asli sehingga Autocomplete / Type Checker tdk kehilangan Signature Function.
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -47,6 +122,8 @@ F = TypeVar("F", bound=Callable[..., Any])
 # =================
 # === CONSTANTS ===
 # =================
+
+# Lebar Label pada Pesan Error agar tanda ":" sejajar.
 
 LABEL_WIDTH: Final[int] = 8
 
@@ -67,418 +144,330 @@ class RuntimeMethodError(RuntimeValidationError):
   """Error pada Method."""
 
 
-# ==============
-# === HELPER ===
-# ==============
+# ===========================
+# === ERROR FORMATTER ===
+# ===========================
 
-# FORMAT VALUE — Memformat Value agar informasi penting tetap terlihat.
+# ERROR FORMATTER — Kumpulan logika untuk mengubah ValidationError milik Pydantic menjadi teks yg mudah dibaca.
 
-def _format_value(value: Any) -> str:
-  # Nilai Array NumPy
-  if isinstance(value, np.ndarray):
-    # Tandai Value sbg NDArray agar informasi shape & dtype dpt ditampilkan dgn jelas
-    value = cast(NDArray[Any], value)
+# Kenapa dijadikan Class?
+# Semua fungsi format berbagi 1 pengaturan yg sama (label_width) dan berkaitan erat satu sama lain.
+# Dgn Class, semuanya berkumpul di 1 tempat dan pengaturannya bisa diganti tanpa mengubah Constant global.
 
-    return f"{type(value).__name__}(shape={value.shape}, dtype={value.dtype})"
+# frozen=True membuat Object tidak bisa diubah setelah dibuat (aman dibagi).
 
-  # Nilai String
-  if isinstance(value, str):
+@dataclass(frozen=True)
+class ErrorFormatter:
+  label_width: int = LABEL_WIDTH
+
+  # --------------------
+  # --- Helper Kecil ---
+  # --------------------
+
+  # FORMAT VALUE — Memformat Value agar informasi penting tetap terlihat.
+  @staticmethod
+  def format_value(value: Any) -> str:
+    # Tipe Array NumPy: tampilkan shape & dtype
+    if isinstance(value, np.ndarray):
+      # Beri tahu Type Checker bahwa ini NDArray
+      array = cast(NDArray[Any], value)
+
+      return f"{type(array).__name__}(shape={array.shape}, dtype={array.dtype})"
+
+    # Tipe lain: tampilkan value dgn representasi stirng
     return repr(value)
 
-  # Nilai tipe lain
-  return repr(value)
+  # FORMAT TYPE — Memformat nama tipe dari sebuah Value.
+  @staticmethod
+  def format_type(value: Any) -> str:
+    # Jika Value adalah Class, tampilkan nama Class itu sendiri
+    if isinstance(value, type):
+      return value.__name__
 
+    # Jika Value adalah Instance, tampilkan nama tipe Instance-nya
+    return type(value).__name__
 
-# FORMAT TYPE — Memformat Nama Tipe dari sebuah Value.
+  # GET ERROR MESSAGE — Mengambil pesan Error dari detail Pydantic.
+  @staticmethod
+  def get_error_message(detail: ErrorDetails) -> str:
+    # Ambil Conteks yg ada bila Validator Custom melempar Exception
+    context: dict[str, Any] | None = detail.get("ctx")
 
-def _format_type(value: Any) -> str:
-  # Jika Value adalah Class, tampilkan nama Class
-  if isinstance(value, type):
-    return value.__name__
+    if context is not None:
+      original_error: Any = context.get("error")
 
-  # Jika Value adalah Instance, tampilkan nama tipe Instance
-  return type(value).__name__
+      # Jika ada Exception asli, pakai pesannya
+      if isinstance(original_error, Exception):
+        return str(original_error)
 
+    # Jika tidak ada, gunakan pesan bawaan Pydantic
+    return str(detail.get("msg", "Nilai tidak valid."))
 
-# ERROR MESSAGE — Mengambil Pesan Error dari Pydantic.
+  # RESOLVE ARGUMENT NAME — Menentukan nama Argument dari lokasi Error.
+  @staticmethod
+  def _resolve_argument_name(
+    location: tuple[int | str, ...],
+    argument_names: tuple[str, ...],
+    positional_offset: int,
+  ) -> str:
+    # Pydantic memberi lokasi ("loc") dalam 2 bentuk:
+    #   - str  -> sudah berupa nama Argument (kasus umum)
+    #   - int  -> urutan Positional Argument, sehingga harus diterjemahkan ke nama
 
-def _get_error_message(detail: ErrorDetails) -> str:
-  # Ambil Context Error
-  context = detail.get("ctx")
+    # Tdk ada informasi lokasi sama sekali
+    if not location:
+      return "unknown"
 
-  if context is not None:
-    # Ambil Error asli dari Custom Validator
-    original_error = context.get("error")
+    # Ambil lokasi pertama
+    first: int | str = location[0]
 
-    # Jika Error asli berupa Exception, gunakan pesan dari Error tersebut
-    if isinstance(original_error, Exception):
-      return str(original_error)
+    # Jika lokasi berupa index, terjemahkan menjadi nama Argument
+    if isinstance(first, int):
+      # Sesuaikan index terhadap self/cls pada Method
+      index: int = first - positional_offset
 
-  # Jika bkn, gunakan pesan bawaan Pydantic.
-  return str(detail.get("msg", "Nilai tidak valid."))
+      # Jika index msh berada dlm jangkauan, kembalikan nama Argument yg sesuai
+      if 0 <= index < len(argument_names):
+        return argument_names[index]
 
+    # Jika lokasi sdh berupa nama atau index berada di luar jangkauan, tampilkan lokasi tersebut apa adanya
+    return str(first)
 
-# FORMAT ARGUMENT DETAIL — Memformat 1 Error Argument.
+  # ----------------------
+  # --- Format 1 Error ---
+  # ----------------------
 
-def _format_argument_detail(
-  detail: ErrorDetails,
-  parameter_names: tuple[str, ...],
-  positional_offset: int,
-) -> str:
-  # Ambil Lokasi Error
-  location = detail.get("loc", ())
+  # ROW — Membuat 1 baris Label dgn lebar yang tetap.
+  def _row(self, label: str, content: str) -> str:
+    return f"{label:<{self.label_width}} : {content}"   # Contoh: "Label    : Isi"
 
-  # Ambil nilai yang divalidasi
-  input_value = detail.get("input")
-
-  # Ambil pesan Error
-  message = _get_error_message(detail)
-
-  # Ambil index Positional Argument
-  raw_index = (
-    location[0]
-    if location and isinstance(location[0], int)
-    else None
-  )
-
-  # Sesuaikan index terhadap Self / Cls
-  # jika Function yg divalidasi adalah Method
-  index = (
-    raw_index - positional_offset
-    if raw_index is not None
-    else None
-  )
-
-  # Tentukan nama Argument
-
-  if (
-    index is not None
-    and 0 <= index < len(parameter_names)
-  ):
-    argument_name = parameter_names[index]
-
-  elif location:
-    argument_name = str(location[0])
-
-  else:
-    argument_name = "unknown"
-
-  # Format Detail
-  return (
-    f"{'Argument':<{LABEL_WIDTH}} : {argument_name}\n"
-    f"{'Received':<{LABEL_WIDTH}} : {_format_value(input_value)}\n"
-    f"{'Type':<{LABEL_WIDTH}} : {_format_type(input_value)}\n"
-    f"{'Message':<{LABEL_WIDTH}} : {message}"
-  )
-
-
-# FORMAT RETURN DETAIL — Memformat 1 Error Return.
-
-def _format_return_detail(detail: ErrorDetails, result: Any) -> str:
-  # Ambil pesan Error
-  message = _get_error_message(detail)
-
-  # Format Detail
-  return (
-    f"{'Return':<{LABEL_WIDTH}} : {_format_value(result)}\n"
-    f"{'Type':<{LABEL_WIDTH}} : {_format_type(result)}\n"
-    f"{'Message':<{LABEL_WIDTH}} : {message}"
-  )
-
-
-# FORMAT ARGUMENT ERRORS — Memformat seluruh Error Argument.
-
-def _format_argument_errors(
-  error: ValidationError,
-  parameter_names: tuple[str, ...],
-  positional_offset: int,
-) -> str:
-  # Format setiap Error Argument
-  details = [
-    _format_argument_detail(
-      detail,
-      parameter_names,
+  # FORMAT ARGUMENT DETAIL — Memformat 1 Error Argument.
+  def format_argument_detail(
+    self,
+    detail: ErrorDetails,
+    argument_names: tuple[str, ...],
+    positional_offset: int,
+  ) -> str:
+    # Buat nama Argument
+    argument_name: str = self._resolve_argument_name(
+      detail.get("loc", ()),
+      argument_names,
       positional_offset,
     )
-    for detail in error.errors()
-  ]
 
-  return "\n\n".join(details)
+    # Value yg ditolak oleh Pydantic
+    input_value: Any = detail.get("input")
 
+    # Format Detail
+    return "\n".join((
+      self._row("Argument", argument_name),
+      self._row("Received", self.format_value(input_value)),
+      self._row("Type", self.format_type(input_value)),
+      self._row("Message", self.get_error_message(detail)),
+    ))
 
-# FORMAT RETURN ERRORS — Memformat seluruh Error Return.
+  # FORMAT RETURN DETAIL — Memformat 1 Error Return.
+  def format_return_detail(self, detail: ErrorDetails, result: Any) -> str:
+    # Format Detail
+    return "\n".join((
+      self._row("Return", self.format_value(result)),
+      self._row("Type", self.format_type(result)),
+      self._row("Message", self.get_error_message(detail)),
+    ))
 
-def _format_return_errors(error: ValidationError, result: Any) -> str:
-  # Format setiap Error Return.
-  details = [
-    _format_return_detail(
-      detail,
-      result,
-    )
-    for detail in error.errors()
-  ]
+  # ----------------------------
+  # --- Format Seluruh Error ---
+  # ----------------------------
 
-  return "\n\n".join(details)
+  # FORMAT ARGUMENT ERRORS — Memformat seluruh Error Argument.
+  def format_argument_errors(
+    self,
+    error: ValidationError,
+    argument_names: tuple[str, ...],
+    positional_offset: int,
+  ) -> str:
+    # Buat Detail pada setiap Error Argument
+    details: list[str] = [
+      self.format_argument_detail(detail, argument_names, positional_offset)
+      for detail in error.errors()
+    ]
 
+    # Antar Error dipisahkan 1 baris kosong
+    return "\n\n".join(details)
 
-# IS PYDANTIC MODEL TYPE — Menentukan apakah Value merupakan Class turunan BaseModel.
-def _is_pydantic_model_type(
-  value: object,
-) -> TypeGuard[type[BaseModel]]:
+  # FORMAT RETURN ERRORS — Memformat seluruh Error Return.
+  def format_return_errors(self, error: ValidationError, result: Any) -> str:
+    # Buat Detail pada setiap Error Return
+    details: list[str] = [
+      self.format_return_detail(detail, result)
+      for detail in error.errors()
+    ]
 
-  return (
-    isinstance(value, type)
-    and issubclass(value, BaseModel)
-  )
-
-
-# IS TYPED DICT TYPE — Menentukan apakah Value merupakan Class TypedDict.
-def _is_typed_dict_type(
-  value: object,
-) -> bool:
-
-  return is_typeddict(value)
-
-
-# CREATE TYPE ADAPTER — Membuat TypeAdapter dari
-# Type Annotation yang diperoleh secara Runtime.
-def _create_type_adapter(
-  annotation: object,
-  config: ConfigDict | None = None,
-) -> TypeAdapter[Any]:
-
-  # Type Annotation berasal dari Runtime sehingga
-  # tidak selalu dapat diinfer secara statis oleh Pyright.
-  runtime_annotation = cast(
-    Any,
-    annotation,
-  )
-
-  # BaseModel / TypedDict tidak membutuhkan Config tambahan.
-  if config is None:
-    return TypeAdapter[Any](
-      runtime_annotation,
-    )
-
-  # Type biasa / custom type menggunakan Config.
-  return TypeAdapter[Any](
-    runtime_annotation,
-    config=config,
-  )
+    # Antar Error dipisahkan 1 baris kosong
+    return "\n\n".join(details)
 
 
-# CREATE RETURN ADAPTER — Membuat Adapter Validasi Return
-# dengan Penanganan Khusus untuk BaseModel dan TypedDict.
-def _create_return_adapter(
-  return_type: Any,
-  config: ConfigDict,
-) -> TypeAdapter[Any]:
+# ======================
+# === ADAPTER HELPER ===
+# ======================
 
-  # Normalisasi menjadi object agar Type Checker
-  # tidak membawa Any | type[Unknown].
-  annotation: object = return_type
+# Pydantic menolak (PydanticUserError) bila Config diberikan ke TypeAdapter untuk Type yg sdh punya Config sendiri, yaitu:
+#   1. Class turunan BaseModel
+#   2. TypedDict
+#   3. Dataclass
 
-  # BaseModel memiliki Schema dan Configurasi sendiri.
-  if _is_pydantic_model_type(annotation):
-    return _create_type_adapter(annotation)
+# Catatan:
+#   - Poin Dataclass adalah tambahan dari kode awal, yg hanya menangani BaseModel & TypedDict.
+#   - Tanpa ini, Function dgn Return Dataclass akan Error saat Decorator dipasang.
 
-  # TypedDict memiliki Schema sendiri.
-  if _is_typed_dict_type(annotation):
-    return _create_type_adapter(annotation)
+# HAS OWN CONFIG — Menentukan apakah sebuah Type sudah membawa Config sendiri.
+def _has_own_config(annotation: object) -> bool:
+  # BaseModel: hrs berupa Class dulu sebelum issubclass() dipakai
+  if isinstance(annotation, type) and issubclass(annotation, BaseModel):
+    return True
 
-  # Tipe umum / custom menggunakan Configurasi.
-  return _create_type_adapter(
-    annotation,
-    config,
-  )
+  # TypedDic: hanya valid pada class/type, bukan instance atau object umum
+  if isinstance(annotation, type) and is_typeddict(cast(Any, annotation)):
+    return True
+
+  # Cek apakah Object sesuai dgn Tipe Instance
+  return isinstance(annotation, type) and is_dataclass(annotation)
+
+
+# CREATE RETURN ADAPTER — Membuat Adapter untuk validasi Return Value.
+def _create_return_adapter(return_type: object, config: ConfigDict) -> TypeAdapter[Any]:
+  # Pyright tdk selalu bisa menginfer Type Annotation, karena itu diperlakukan sebagai Any
+  annotation: Any = return_type
+
+  # Type dgn Config sendiri, jgn beri Config tambahan
+  if _has_own_config(annotation):
+    return TypeAdapter(annotation)
+
+  # Type umum/custom, beri Config dari Decorator
+  return TypeAdapter(annotation, config=config)
 
 
 # =============================
-# === RUNTIME ERROR BUILDER ===
+# === RUNTIME VALIDATOR ===
 # =============================
 
-# BUILD RUNTIME ERROR — Membangun RuntimeFunctionError
-# atau RuntimeMethodError dari Detail Error yang sudah diformat.
-def _build_runtime_error(
-  error_type: type[RuntimeValidationError],
-  callable_object: Callable[..., Any],
-  label: str,
-  details: str,
-) -> RuntimeValidationError:
+# RUNTIME VALIDATOR — Mesin utama untuk Object dari Class Decorator.
+class RuntimeValidator:
+  # CONSTRUCTOR — initialization
+  def __init__(
+    self,
+    error_type: type[RuntimeValidationError],
+    label: str,
+    *,
+    strict: bool = False,
+    skip_first_parameter: bool = False,
+    formatter: ErrorFormatter | None = None,
+  ) -> None:
+    # Jenis Exception yg dibangkitkan saat validasi gagal
+    self._error_type: type[RuntimeValidationError] = error_type
 
-  return error_type(
-    f"Error ({error_type.__name__}):\n\n"
-    f"{label} : {callable_object.__name__}\n\n"
-    f"{details}"
-  )
+    # Label pada Pesan Error
+    self._label: str = label
 
+    # Opsi apakah tipe harus persis sama atau konversi otomatis
+    self._strict: bool = strict
 
-# ==========================
-# === RUNTIME VALIDATION ===
-# ==========================
+    # Opsi apakah Parameter self/cls digunakan atau tdk digunakan
+    self._skip_first_parameter: bool = skip_first_parameter
 
-# RUNTIME CALLABLE — Mesin utama untuk membuat Decorator
-# yang menangani Validasi Function maupun Method.
-def _runtime_callable(
-  error_type: type[RuntimeValidationError],
-  label: str,
-  *,
-  strict: bool = False,
-  skip_first_parameter: bool = False,
-) -> Callable[[F], F]:
-
-  # DECORATOR — Menerima Function/Method yang akan
-  # diberi Runtime Validation.
-  def decorator(function: F) -> F:
-
-    # Ambil semua nama Parameter dari Function/Method.
-    parameter_names = tuple(
-      signature(function).parameters
+    # Formatter Pesan Error
+    self._formatter: ErrorFormatter = (
+      formatter if formatter is not None else ErrorFormatter()
     )
 
-    # Method memiliki self/cls sebagai parameter pertama.
-    # Parameter tersebut tidak ditampilkan sebagai Argument
-    # milik user.
-    positional_offset = 0
-
-    if skip_first_parameter:
-      parameter_names = parameter_names[1:]
-      positional_offset = 1
-
-    # Ambil Return Type dari Annotation Function.
-    return_type = get_type_hints(
-      function,
-      include_extras=True,
-    ).get(
-      "return",
-      Any,
-    )
-
-    # Tentukan aturan validasi Pydantic.
-    config = ConfigDict(
+    # Aturan validasi Pydantic
+    self._config: ConfigDict = ConfigDict(
       strict=strict,
       arbitrary_types_allowed=True,
     )
 
-    # VALIDATOR ARGUMENT — Hanya melakukan Validasi
-    # terhadap Argument Function.
-    argument_validator = validate_call(
-      config=config,
-      validate_return=False,
-    )(function)
-
-    # VALIDATOR RETURN — Membuat Adapter khusus
-    # untuk melakukan Validasi Return Value.
-    return_adapter = _create_return_adapter(
-      return_type,
-      config,
+  # BUILD ERROR — Membangun Exception dari Detail Error yg sudah diformat.
+  def _build_error(self, function: Callable[..., Any], details: str) -> RuntimeValidationError:
+    # Buat Format Detail Error
+    return self._error_type(
+      f"Error ({self._error_type.__name__}):\n\n"
+      f"{self._label} : {function.__name__}\n\n"
+      f"{details}"
     )
 
-    # WRAPPER — Function pengganti yang dipanggil
-    # oleh user setelah decorator diterapkan.
+  # CALL — Dipanggil saat Decorator telah dipasang pada sebuah Function/Method.
+  def __call__(self, function: F) -> F:
+    # --- Persiapan (dijalankan SEKALI saat Decorator dipasang) ---
+
+    # Nama seluruh Parameter Function
+    all_names: tuple[str, ...] = tuple(signature(function).parameters)
+
+    # Penentuan posisi awal Argument
+    argument_names: tuple[str, ...] = (
+      all_names[1:] if self._skip_first_parameter else all_names
+    )
+
+    positional_offset: int = 1 if self._skip_first_parameter else 0
+
+    # Return Type dari Annotation
+    return_type: Any = (
+      get_type_hints(function, include_extras=True).get("return", Any)
+    )
+
+    # Validator Argument
+    argument_validator: Callable[..., Any] = (
+      validate_call(config=self._config, validate_return=False)(function)
+    )
+
+    # Validator Return
+    return_adapter: TypeAdapter[Any] = (
+      _create_return_adapter(return_type, self._config)
+    )
+
+    # --- Wrapper (dijalankan SETIAP Function dipanggil) ---
+
+    # @wraps menyalin nama, docstring, dan annotation Function asli ke wrapper agar tdk "hilang" setelah didekorasi
     @wraps(function)
-    def wrapper(
-      *args: Any,
-      **kwargs: Any,
-    ) -> Any:
-
-      # =========================
-      # === ARGUMENT VALIDATION ===
-      # =========================
-
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+      # Validasi Argument
       try:
-
-        # Jalankan Validasi Argument.
-        result = argument_validator(
-          *args,
-          **kwargs,
-        )
+        # Jalankan Validasi
+        result: Any = argument_validator(*args, **kwargs)
 
       except ValidationError as error:
+        # Buat detail Errors
+        details: str = self._formatter.format_argument_errors(error, argument_names, positional_offset)
 
-        # Format Detail Error Argument.
-        details = _format_argument_errors(
-          error,
-          parameter_names,
-          positional_offset,
-        )
+        # Bangkitkan Error
+        raise self._build_error(function, details) from error
 
-        # Bangkitkan Runtime Error khusus.
-        raise _build_runtime_error(
-          error_type,
-          function,
-          label,
-          details,
-        ) from error
-
-      # ========================
-      # === RETURN VALIDATION ===
-      # ========================
-
+      # Validasi Return
       try:
-
-        # Jalankan Validasi Return.
-        #
-        # Nilai hasil validasi sengaja tidak dikembalikan.
-        # Project tetap mengembalikan result asli seperti
-        # perilaku kode sebelumnya.
-        return_adapter.validate_python(
-          result,
-          strict=strict,
-        )
+        # Jalankan Validasi
+        return_adapter.validate_python(result, strict=self._strict)
 
       except ValidationError as error:
+        # Buat detail Errors
+        details = self._formatter.format_return_errors(error, result)
 
-        # Format Detail Error Return.
-        details = _format_return_errors(
-          error,
-          result,
-        )
+        # Bangkitkan Error
+        raise self._build_error(function, details) from error
 
-        # Bangkitkan Runtime Error khusus.
-        raise _build_runtime_error(
-          error_type,
-          function,
-          label,
-          details,
-        ) from error
-
-      # Kembalikan result asli dari Function.
       return result
 
-    # Kembalikan Wrapper sebagai Function generik F.
+    # Untuk Type Checke,: wrapper diperlakukan sbg tipe Function asli
     return cast(F, wrapper)
 
-  # Kembalikan Decorator dengan Konfigurasi Runtime.
-  return decorator
+
+# ==================
+# === PUBLIC API ===
+# ==================
+
+# RUNTIME FUNCTION — Decorator Runtime Validation untuk Function.
+def runtime_function(*, strict: bool = False) -> RuntimeValidator:
+  return RuntimeValidator(RuntimeFunctionError, "Function", strict=strict)
 
 
-# RUNTIME FUNCTION — Decorator untuk Runtime Validation
-# pada sebuah Function.
-def runtime_function(
-  *,
-  strict: bool = False,
-) -> Callable[[F], F]:
-
-  # Gunakan Mesin Decorator Runtime.
-  return _runtime_callable(
-    RuntimeFunctionError,
-    "Function",
-    strict=strict,
-  )
-
-
-# RUNTIME METHOD — Decorator untuk Runtime Validation
-# pada sebuah Method.
-def runtime_method(
-  *,
-  strict: bool = False,
-) -> Callable[[F], F]:
-
-  # Gunakan Mesin Decorator Runtime.
-  return _runtime_callable(
-    RuntimeMethodError,
-    "Method",
-    strict=strict,
-    skip_first_parameter=True,
-  )
+# RUNTIME METHOD — Decorator Runtime Validation untuk Method.
+def runtime_method(*, strict: bool = False) -> RuntimeValidator:
+  return RuntimeValidator(RuntimeMethodError, "Method", strict=strict, skip_first_parameter=True)
