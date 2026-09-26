@@ -24,11 +24,11 @@ from src.utils.custom_types import (
 )
 
 
-# =================================================================
-# === TYPING MANUAL ===============================================
-# =================================================================
+# =====================
+# === TYPING MANUAL ===
+# =====================
 
-print("=== TYPING MANUAL ===")
+print("=== TYPING MANUAL ===\n")
 
 
 @runtime_function(strict=True)
@@ -53,468 +53,326 @@ def manual_float_list(values: FloatList) -> FloatList:
 
 print(f"Int : {manual_int(10)}")
 print(f"Float : {manual_float(0.5)}")
+print(f"IntList: {manual_int_list([1, 2, 3])}")
+print(f"FloatList: {manual_float_list([1.0, 2.0, 3.0])}\n")
 
 
-print(
-  "IntList:",
-  manual_int_list([1, 2, 3]),
-)
+# ===========================
+# === TYPING MANUAL ERROR ===
+# ===========================
 
-print(
-  "FloatList:",
-  manual_float_list([1.0, 2.0, 3.0]),
-)
-
-
-# =================================================================
-# === TYPING MANUAL ERROR =========================================
-# =================================================================
-
-print()
-print("=== TYPING MANUAL ERROR ===")
+print("=== TYPING MANUAL ERROR ===\n")
 
 
 try:
   manual_int("10")
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
 try:
   manual_float(10)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
 try:
   manual_int_list([1, "salah", 3])
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
 try:
   manual_float_list([1.0, "salah", 3.0])
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === INT POSITIVE ================================================
-# =================================================================
+# ====================
+# === INT POSITIVE ===
+# ====================
 
-print()
-print("=== INT POSITIVE ===")
+print("=== INT POSITIVE ===\n")
 
 
 @runtime_function(strict=True)
-def create_batch_size(
-  value: IntPositive,
-) -> IntPositive:
+def create_batch_size(value: IntPositive) -> IntPositive:
   return value
 
 
-print(
-  "Valid:",
-  create_batch_size(5),
-)
+print(f"Valid: {create_batch_size(5)}\n")
 
 
 try:
   create_batch_size(0)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
 try:
   create_batch_size(-5)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === FLOAT POSITIVE ==============================================
-# =================================================================
+# ======================
+# === FLOAT POSITIVE ===
+# ======================
 
-print()
-print("=== FLOAT POSITIVE ===")
+print("=== FLOAT POSITIVE ===\n")
 
 
 @runtime_function(strict=True)
-def create_learning_rate(
-  value: FloatPositive,
-) -> FloatPositive:
+def create_learning_rate(value: FloatPositive) -> FloatPositive:
   return value
 
 
-print(
-  "Valid:",
-  create_learning_rate(0.01),
-)
+print(f"Valid: {create_learning_rate(0.01)}\n")
 
 
 try:
   create_learning_rate(0.0)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
 try:
   create_learning_rate(-0.01)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === ALPHA RANGE =================================================
-# =================================================================
+# ===================
+# === ALPHA RANGE ===
+# ===================
 
-print()
-print("=== ALPHA RANGE ===")
+print("=== ALPHA RANGE ===\n")
 
 
 @runtime_function(strict=True)
-def create_alpha(
-  value: AlphaRange,
-) -> AlphaRange:
+def create_alpha(value: AlphaRange) -> AlphaRange:
   return value
 
 
-print(
-  "Valid:",
-  create_alpha(0.01),
-)
+print(f"Valid: {create_alpha(0.01)}\n")
 
 
 try:
   create_alpha(0.0)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
 try:
   create_alpha(1.0)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
 try:
   create_alpha(1.5)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === FLOAT VECTOR ================================================
-# =================================================================
+# ====================
+# === FLOAT VECTOR ===
+# ====================
 
-print()
-print("=== FLOAT VECTOR ===")
+print("=== FLOAT VECTOR ===\n")
 
 
 @runtime_function(strict=True)
-def vector_function(
-  value: FloatVector,
-) -> FloatVector:
+def vector_function(value: FloatVector) -> FloatVector:
   return value
 
 
 vector = vector_function(
-  np.array(
-    [1.0, 2.0, 3.0],
-    dtype=np.float64,
-  )
+  np.array([1.0, 2.0, 3.0], dtype=np.float64)
 )
 
-print(
-  "Valid:",
-  vector,
-)
+print(f"Valid: {vector}\n")
 
 
 try:
   vector_function(
-    np.array(
-      [
-        [1.0, 2.0],
-        [3.0, 4.0],
-      ],
-      dtype=np.float64,
-    )
+    np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
   )
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === FLOAT MATRIX ================================================
-# =================================================================
+# ====================
+# === FLOAT MATRIX ===
+# ====================
 
-print()
-print("=== FLOAT MATRIX ===")
+print("=== FLOAT MATRIX ===\n")
 
 
 @runtime_function(strict=True)
-def matrix_function(
-  value: FloatMatrix,
-) -> FloatMatrix:
+def matrix_function(value: FloatMatrix) -> FloatMatrix:
   return value
 
 
 matrix = matrix_function(
-  np.array(
-    [
-      [1.0, 2.0],
-      [3.0, 4.0],
-    ],
-    dtype=np.float64,
-  )
+  np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
 )
 
-print(
-  "Valid:",
-  matrix,
-)
+print(f"Valid:\n{matrix}\n")
 
 
 try:
   matrix_function(
-    np.array(
-      [1.0, 2.0, 3.0],
-      dtype=np.float64,
-    )
+    np.array([1.0, 2.0, 3.0], dtype=np.float64)
   )
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === FLOAT ARRAY =================================================
-# =================================================================
+# ===================
+# === FLOAT ARRAY ===
+# ===================
 
-print()
-print("=== FLOAT ARRAY ===")
+print("=== FLOAT ARRAY ===\n")
 
 
 @runtime_function(strict=True)
-def array_function(
-  value: FloatArray,
-) -> FloatArray:
+def array_function(value: FloatArray) -> FloatArray:
   return value
 
 
 array_1d = array_function(
-  np.array(
-    [1.0, 2.0, 3.0],
-    dtype=np.float64,
-  )
+  np.array([1.0, 2.0, 3.0], dtype=np.float64)
 )
 
 array_2d = array_function(
-  np.array(
-    [
-      [1.0, 2.0],
-      [3.0, 4.0],
-    ],
-    dtype=np.float64,
-  )
+  np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
 )
 
-print(
-  "1D:",
-  array_1d,
-)
-
-print(
-  "2D:",
-  array_2d,
-)
+print(f"1D: {array_1d}")
+print(f"2D:\n{array_2d}\n")
 
 
 try:
   array_function(
-    np.array(
-      [
-        [
-          [1.0, 2.0],
-          [3.0, 4.0],
-        ],
-      ],
-      dtype=np.float64,
-    )
+    np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float64)
   )
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === DATA SAMPLE =================================================
-# =================================================================
+# ===================
+# === DATA SAMPLE ===
+# ===================
 
-print()
-print("=== DATA SAMPLE ===")
+print("=== DATA SAMPLE ===\n")
 
 
 @runtime_function(strict=True)
-def create_sample(
-  sample: DataSample,
-) -> DataSample:
+def create_sample(sample: DataSample) -> DataSample:
   return sample
 
 
 sample = create_sample(
   DataSample(
-    inputs=np.array(
-      [1.0, 2.0, 3.0],
-      dtype=np.float64,
-    ),
-    targets=np.array(
-      [4.0, 5.0],
-      dtype=np.float64,
-    ),
+    inputs=np.array([1.0, 2.0, 3.0], dtype=np.float64),
+    targets=np.array([4.0, 5.0], dtype=np.float64),
   )
 )
 
-print(
-  "Inputs:",
-  sample.inputs,
-)
-
-print(
-  "Targets:",
-  sample.targets,
-)
+print(f"Inputs  : {sample.inputs}")
+print(f"Targets : {sample.targets}\n")
 
 
-# =================================================================
-# === DATASET =====================================================
-# =================================================================
+# ===============
+# === DATASET ===
+# ===============
 
-print()
-print("=== DATASET ===")
+print("=== DATASET ===\n")
 
 
 @runtime_function(strict=True)
-def create_dataset(
-  dataset: Dataset,
-) -> Dataset:
+def create_dataset(dataset: Dataset) -> Dataset:
   return dataset
 
 
 dataset = create_dataset(
   [
     DataSample(
-      inputs=np.array(
-        [1.0, 2.0, 3.0],
-        dtype=np.float64,
-      ),
-      targets=np.array(
-        [4.0, 5.0],
-        dtype=np.float64,
-      ),
+      inputs=np.array([1.0, 2.0, 3.0], dtype=np.float64),
+      targets=np.array([4.0, 5.0], dtype=np.float64),
     ),
   ]
 )
 
-print(
-  "Dataset:",
-  dataset,
-)
+print(f"Dataset: {dataset}\n")
 
 
-# =================================================================
-# === METRICS =====================================================
-# =================================================================
+# ===============
+# === METRICS ===
+# ===============
 
-print()
-print("=== METRICS ===")
+print("=== METRICS ===\n")
 
 
 @runtime_function(strict=True)
-def create_metrics(
-  metrics: Metrics,
-) -> Metrics:
+def create_metrics(metrics: Metrics) -> Metrics:
   return metrics
 
 
-metrics = create_metrics(
-  {
-    "MSE": 0.01,
-    "MAE": 0.02,
-    "RMSE": 0.1,
-  }
-)
+metrics = create_metrics({"MSE": 0.01, "MAE": 0.02, "RMSE": 0.1})
 
-print(
-  "Metrics:",
-  metrics,
-)
+print(f"Metrics: {metrics}\n")
 
 
 try:
-  create_metrics(
-    {
-      "MSE": 0.01,
-      "MAE": 0.02,
-      "SALAH": 0.1,
-    }
-  )
+  create_metrics({"MSE": 0.01, "MAE": 0.02, "SALAH": 0.1})
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === FUNCTION ARGUMENT ERROR ====================================
-# =================================================================
+# ===============================
+# === FUNCTION ARGUMENT ERROR ===
+# ===============================
 
-print()
-print("=== FUNCTION ARGUMENT ERROR ===")
+print("=== FUNCTION ARGUMENT ERROR ===\n")
 
 
 @runtime_function(strict=True)
-def tambah(
-  a: int,
-  b: int,
-) -> int:
+def tambah(a: int, b: int) -> int:
   return a + b
 
 
-print(
-  "Valid:",
-  tambah(10, 20),
-)
+print(f"Valid: {tambah(10, 20)}\n")
 
 
 try:
-  tambah(
-    "salah",
-    20,
-  )
+  tambah("salah", 20)
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === FUNCTION RETURN ERROR ======================================
-# =================================================================
+# =============================
+# === FUNCTION RETURN ERROR ===
+# =============================
 
-print()
-print("=== FUNCTION RETURN ERROR ===")
+print("=== FUNCTION RETURN ERROR ===\n")
 
 
 @runtime_function(strict=True)
@@ -526,61 +384,47 @@ try:
   salah_return()
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === METHOD ARGUMENT ERROR =======================================
-# =================================================================
+# =============================
+# === METHOD ARGUMENT ERROR ===
+# =============================
 
-print()
-print("=== METHOD ARGUMENT ERROR ===")
+print("=== METHOD ARGUMENT ERROR ===\n")
 
 
 class Calculator:
-
+  # TAMBAH — Menggabungkan 2 nilai Argument
   @runtime_method(strict=True)
-  def tambah(
-    self,
-    a: int,
-    b: int,
-  ) -> int:
+  def tambah(self, a: int, b: int) -> int:
     return a + b
 
 
 calculator = Calculator()
 
 
-print(
-  "Valid:",
-  calculator.tambah(10, 20),
-)
+print(f"Valid: {calculator.tambah(10, 20)}\n")
 
 
 try:
-  calculator.tambah(
-    "salah",
-    20,
-  )
+  calculator.tambah("salah", 20)
 
 except RuntimeMethodError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === METHOD RETURN ERROR =========================================
-# =================================================================
+# ===========================
+# === METHOD RETURN ERROR ===
+# ===========================
 
-print()
-print("=== METHOD RETURN ERROR ===")
+print("=== METHOD RETURN ERROR ===\n")
 
 
 class BrokenCalculator:
-
+  # SALAH RETURN — Method yg sengaja dibuat error untuk test
   @runtime_method(strict=True)
-  def salah_return(
-    self,
-  ) -> int:
+  def salah_return(self) -> int:
     return "salah"
 
 
@@ -591,15 +435,14 @@ try:
   broken_calculator.salah_return()
 
 except RuntimeMethodError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-# =================================================================
-# === RETURN NONE ERROR ===========================================
-# =================================================================
+# =========================
+# === RETURN NONE ERROR ===
+# =========================
 
-print()
-print("=== RETURN NONE ERROR ===")
+print("=== RETURN NONE ERROR ===\n")
 
 
 @runtime_function(strict=True)
@@ -611,8 +454,11 @@ try:
   return_none()
 
 except RuntimeFunctionError as error:
-  print(error)
+  print(f"{error}\n")
 
 
-print()
+# ===================
+# === FINISH TEST ===
+# ===================
+
 print("=== TEST SELESAI ===")

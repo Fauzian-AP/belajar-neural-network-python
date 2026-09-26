@@ -3,13 +3,14 @@
 import numpy as np
 
 from numpy.typing import NDArray
+
 from enum import Enum
+from collections.abc import Sequence
 
 from typing import (
   Any,
-  Annotated,
   Literal,
-  TypeAlias,
+  Annotated,
   TypedDict,
 )
 
@@ -18,9 +19,9 @@ from pydantic import (
   StrictFloat,
   StrictBool,
   BaseModel,
-  BeforeValidator,
   ConfigDict,
   Field,
+  BeforeValidator,
 )
 
 
@@ -28,12 +29,11 @@ from pydantic import (
 # === BASIC TYPES ===
 # ===================
 
-Int: TypeAlias = StrictInt
-Float: TypeAlias = StrictFloat
-Bool: TypeAlias = StrictBool
+type Numeric = StrictInt | StrictFloat
 
-IntList: TypeAlias = list[int]
-FloatList: TypeAlias = list[float]
+type Int = StrictInt
+type Float = StrictFloat
+type Bool = StrictBool
 
 
 # =============================
@@ -46,8 +46,13 @@ def _validate_vector(value: Any) -> NDArray[np.float64]:
 
   # Vector hrs 1D
   if array.ndim != 1:
-    # Bangkitkan
+    # Bangkitkan Error
     raise ValueError(f"Dimensi Vector hrs 1D, sedangkan pd value {array.ndim}D.")
+
+  # Vector hrs memiliki isi
+  if array.size == 0:
+    # Bangkitkan Error
+    raise ValueError(f"Vector tdk boleh kosong.")
 
   return array
 
@@ -61,6 +66,11 @@ def _validate_matrix(value: Any) -> NDArray[np.float64]:
     # Bangkitkan Error
     raise ValueError(f"Dimensi Matrix hrs 2D, sedangkan pd value {array.ndim}D.")
 
+  # Matrix hrs memiliki isi
+  if array.size == 0:
+    # Bangkitkan Error
+    raise ValueError(f"Matrix tdk boleh kosong.")
+
   return array
 
 
@@ -73,6 +83,11 @@ def _validate_array(value: Any) -> NDArray[np.float64]:
     # Bangkitkan Error
     raise ValueError(f"Dimensi Array hrs 1D atau 2D, sedangkan pd value {array.ndim}D.")
 
+  # Array hrs memiliki isi
+  if array.size == 0:
+    # Bangkitkan Error
+    raise ValueError(f"Array tdk boleh kosong.")
+
   return array
 
 
@@ -80,18 +95,24 @@ def _validate_array(value: Any) -> NDArray[np.float64]:
 # === NUMPY TYPES ===
 # ===================
 
-FloatVector: TypeAlias = Annotated[NDArray[np.float64], BeforeValidator(_validate_vector)]
-FloatMatrix: TypeAlias = Annotated[NDArray[np.float64], BeforeValidator(_validate_matrix)]
-FloatArray: TypeAlias = Annotated[NDArray[np.float64], BeforeValidator(_validate_array)]
+type FloatVector = Annotated[NDArray[np.float64], BeforeValidator(_validate_vector)]
+type FloatMatrix = Annotated[NDArray[np.float64], BeforeValidator(_validate_matrix)]
+type FloatArray = Annotated[NDArray[np.float64], BeforeValidator(_validate_array)]
 
 
 # ===========================
 # === NUMERIC CONSTRAINTS ===
 # ===========================
 
-IntPositive: TypeAlias = Annotated[Int, Field(gt=0,)]
-FloatPositive: TypeAlias = Annotated[Float, Field(gt=0.0)]
-AlphaRange: TypeAlias = Annotated[Float, Field(gt=0.0, lt=1.0,)]
+type IntPositive = Annotated[Int, Field(gt=0,)]
+type FloatPositive = Annotated[Float, Field(gt=0.0)]
+
+type NumSequence = Annotated[Sequence[Numeric], Field(min_length=1)]
+
+type IntList = Annotated[list[Int], Field(min_length=1)]
+type FloatList = Annotated[list[Float], Field(min_length=1)]
+
+type AlphaRange = Annotated[Float, Field(gt=0.0, lt=1.0,)]
 
 
 # ===================
@@ -105,43 +126,57 @@ class DataSample(BaseModel):
   # Input Features
   inputs: FloatVector
 
-  # Target / Expected Output
+  # Expected Output
   targets: FloatVector
+
+
+# ========================
+# === LIST DATA SAMPLE ===
+# ========================
+
+type DataSampleList = Annotated[list[DataSample], Field(min_length=1)]
 
 
 # ===============
 # === DATASET ===
 # ===============
 
-DatasetName: TypeAlias = Literal[
-  "training",
-  "validation",
-  "testing",
-  "generalization",
-]
+type DatasetName = Literal["training", "validation", "testing", "generalization"]
+
+class Dataset(BaseModel):
+  # Hanya 4 jenis Dataset yg diperbolehkan.
+  model_config = ConfigDict(extra="forbid")
+
+  # Dataset Training
+  training: DataSampleList
+
+  # Dataset Validation
+  validation: DataSampleList
+
+  # Dataset Testing
+  testing: DataSampleList
+
+  # Dataset Generalization
+  generalization: DataSampleList
 
 
-Dataset: TypeAlias = list[DataSample]
-
-DatasetList: TypeAlias = list[Dataset]
-
-DatasetType: TypeAlias = dict[DatasetName, Dataset]
+type DatasetList = list[Dataset]
 
 
 # ==================
 # === EVALUATING ===
 # ==================
 
-MetricsName: TypeAlias = Literal["MSE", "MAE", "RMSE"]
+type MetricsName = Literal["MSE", "MAE", "RMSE"]
 
-Metrics: TypeAlias = dict[MetricsName, Float]
+type Metrics = dict[MetricsName, Float]
 
-EvaluatingType: TypeAlias = dict[DatasetName, Metrics]
+type EvaluatingType = dict[DatasetName, Metrics]
 
 
-# =================================================================
-# === CACHE NEURON =================================================
-# =================================================================
+# ====================
+# === CACHE NEURON ===
+# ====================
 
 class CacheNeuron(TypedDict):
 
@@ -187,9 +222,9 @@ class FitResult(TypedDict):
   best_validating_mse: float
 
 
-# =================================================================
-# === ENUM TYPES ==================================================
-# =================================================================
+# ==================
+# === ENUM TYPES ===
+# ==================
 
 class ScaleType(str, Enum):
 
