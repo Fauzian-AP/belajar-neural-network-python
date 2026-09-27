@@ -18,7 +18,7 @@ from src.utils.custom_types import (
 
 # CREATE FLOAT VECTOR — Membuat NumPy Vector dgn dtype float64.
 
-@runtime_function(strict=True)
+@runtime_function()
 def create_float_vector(values: NumSequence) -> FloatVector:
   # Konversi Values menjadi Numpy Array float64
   return np.asarray(values, dtype=np.float64)
@@ -26,9 +26,9 @@ def create_float_vector(values: NumSequence) -> FloatVector:
 
 # CREATE SAMPLE DATA —  Membuat sebuah DataSample.
 
-@runtime_function(strict=True)
+@runtime_function()
 def create_data_sample(inputs: NumSequence, targets: NumSequence) -> DataSample:
-  # Buat menggunakan Base Model Pydantic
+  # Buat menggunakan DataSample yg berasal dari BaseModel Pydantic
   return DataSample(
     inputs=create_float_vector(inputs),   # Input Features
     targets=create_float_vector(targets),   # Expected Output

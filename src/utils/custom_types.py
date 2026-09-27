@@ -115,9 +115,21 @@ type FloatList = Annotated[list[Float], Field(min_length=1)]
 type AlphaRange = Annotated[Float, Field(gt=0.0, lt=1.0,)]
 
 
-# ===================
-# === DATA SAMPLE ===
-# ===================
+# ==========================
+# === SHAPE MODEL ===
+# ==========================
+
+class LayerShape(BaseModel):
+  # Jumlah Input yg diterima setiap Layer
+  input_count: IntPositive
+
+  # Jumlah Neuron setiap Layer
+  neuron_count: IntPositive
+
+
+# =========================
+# === DATA SAMPLE MODEL ===
+# =========================
 
 class DataSample(BaseModel):
   # NumPy Array merupakan Arbitrary Type
